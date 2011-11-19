@@ -1,0 +1,28 @@
+# Compiled object files #
+#########################
+*.lo
+*.o
+*.slo
+*.a
+*.dylib
+*.so
+*.dll
+
+# Other generated files #
+#########################
+*.Plo
+*.Po
+*.la
+*.lai
+Makefile
+config.h
+config.log
+config.status
+libtool
+stamp-h1
+
+# Eclipse metadata #
+####################
+.classpath
+.project
+.settings
