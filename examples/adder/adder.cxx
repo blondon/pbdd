@@ -6,7 +6,7 @@
 *************************************************************************/
 #include <stdlib.h>
 #include <string.h>
-#include "bdd.h"
+#include <bdd.h>
 
 int N;
 
