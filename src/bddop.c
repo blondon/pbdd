@@ -40,7 +40,7 @@
 #include <time.h>
 #include <assert.h>
 
-#include <omp.h>
+#include <cilk/cilk.h>
 
 #include "kernel.h"
 #include "cache.h"
@@ -85,8 +85,7 @@ static int oprres[OPERATOR_NUM][4] =
 };
 
 
-/* Variables needed for the operators */
-static int mythreadid;				/* thread ID */
+   /* Variables needed for the operators */
 static int applyop;                 /* Current operator for apply */
 static int appexop;                 /* Current operator for appex */
 static int appexid;                 /* Current cache id for appex */
@@ -537,6 +536,11 @@ BDD bdd_apply(BDD l, BDD r, int op)
 	return res;
 }
 
+static void apply_par(BDD l, BDD r)
+{
+	BDD res = apply_rec(l, r);
+	PUSHREF(res);
+}
 
 static BDD apply_rec(BDD l, BDD r)
 {
@@ -611,53 +615,23 @@ static BDD apply_rec(BDD l, BDD r)
 		int i;
 		if (LEVEL(l) == LEVEL(r))
 		{
-			#ifdef _OPENMP
-			#pragma omp parallel for private(applyop)
-			for (i = 0; i < 2; i++)
-			{
-				if (i == 0)
-					PUSHREF( apply_rec(LOW(l), LOW(r)) );
-				else if (i == 1)
-					PUSHREF( apply_rec(HIGH(l), HIGH(r)) );
-			}
-			#else
-			PUSHREF( apply_rec(LOW(l), LOW(r)) );
-			PUSHREF( apply_rec(HIGH(l), HIGH(r)) );
-			#endif
+			cilk_spawn apply_par(LOW(l), LOW(r));
+			cilk_spawn apply_par(HIGH(l), HIGH(r));
+			cilk_sync;
 			res = bdd_makenode(LEVEL(l), READREF(2), READREF(1));
 		}
 		else if (LEVEL(l) < LEVEL(r))
 		{
-			#ifdef _OPENMP
-			#pragma omp parallel for private(applyop)
-			for (i = 0; i < 2; i++)
-			{
-				if (i == 0)
-					PUSHREF( apply_rec(LOW(l), r) );
-				else if (i == 1)
-					PUSHREF( apply_rec(HIGH(l), r) );
-			}
-			#else
-			PUSHREF( apply_rec(LOW(l), r) );
-			PUSHREF( apply_rec(HIGH(l), r) );
-			#endif
+			cilk_spawn apply_par(LOW(l), r);
+			cilk_spawn apply_par(HIGH(l), r);
+			cilk_sync;
 			res = bdd_makenode(LEVEL(l), READREF(2), READREF(1));
 		}
 		else
 		{
-			#ifdef _OPENMP
-			#pragma omp parallel for private(applyop)
-			for (i = 0; i < 2; i++)
-			{
-				if (i == 0)
-					PUSHREF( apply_rec(l, LOW(r)) );
-				else if (i == 1)
-					PUSHREF( apply_rec(l, HIGH(r)) );
-			}
-			#else
-			PUSHREF( apply_rec(l, LOW(r)) );
-			PUSHREF( apply_rec(l, HIGH(r)) );
-			#endif
+			cilk_spawn apply_par(l, LOW(r));
+			cilk_spawn apply_par(l, HIGH(r));
+			cilk_sync;
 			res = bdd_makenode(LEVEL(r), READREF(2), READREF(1));
 		}
 		
