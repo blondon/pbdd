@@ -4,6 +4,10 @@
 int apply_symm = 0;
 const BDD IN_PROGRESS = -1;
 
+/* internal prototypes */
+static BDD apply_rec(BDD l, BDD r);
+static void apply_par(BDD, BDD);
+
 BDD pbdd_makenode(unsigned int level, BDD low, BDD high, int *creat)
 {
 	unsigned int hash;
@@ -249,3 +253,9 @@ static BDD apply_rec(BDD l, BDD r)
 	return res;
 }
 
+
+static void apply_par(BDD l, BDD r)
+{
+  BDD res = apply_rec(l, r);
+  PUSHREF(res);
+}

@@ -40,8 +40,6 @@
 #include <time.h>
 #include <assert.h>
 
-#include <omp.h>
-
 #include "kernel.h"
 #include "cache.h"
 
@@ -85,8 +83,7 @@ static int oprres[OPERATOR_NUM][4] =
 };
 
 
-/* Variables needed for the operators */
-static int mythreadid;				/* thread ID */
+   /* Variables needed for the operators */
 static int applyop;                 /* Current operator for apply */
 static int appexop;                 /* Current operator for appex */
 static int appexid;                 /* Current cache id for appex */
@@ -501,140 +498,133 @@ DESCR   {* The {\tt bdd\_apply} function performs all of the basic
 */
 BDD bdd_apply(BDD l, BDD r, int op)
 {
-	BDD res;
-	firstReorder = 1;
-	
-	CHECKa(l, bddfalse);
-	CHECKa(r, bddfalse);
-	
-	if (op<0 || op>bddop_invimp)
-	{
-		bdd_error(BDD_OP);
-		return bddfalse;
-	}
-	
-	again:
-	if (setjmp(bddexception) == 0)
-	{
-		INITREF;
-		applyop = op;
-		
-		if (!firstReorder)
-			bdd_disable_reorder();
-		res = apply_rec(l, r);
-		if (!firstReorder)
-			bdd_enable_reorder();
-	}
-	else
-	{
-		bdd_checkreorder();
-		if (firstReorder-- == 1)
-			goto again;
-		res = BDDZERO;  /* avoid warning about res being uninitialized */
-	}
+   BDD res;
+   firstReorder = 1;
    
-	checkresize();
-	return res;
+   CHECKa(l, bddfalse);
+   CHECKa(r, bddfalse);
+
+   if (op<0 || op>bddop_invimp)
+   {
+      bdd_error(BDD_OP);
+      return bddfalse;
+   }
+
+ again:
+   if (setjmp(bddexception) == 0)
+   {
+      INITREF;
+      applyop = op;
+      
+      if (!firstReorder)
+	 bdd_disable_reorder();
+      res = apply_rec(l, r);
+      if (!firstReorder)
+	 bdd_enable_reorder();
+   }
+   else
+   {
+      bdd_checkreorder();
+
+      if (firstReorder-- == 1)
+	 goto again;
+      res = BDDZERO;  /* avoid warning about res being uninitialized */
+   }
+   
+   checkresize();
+   return res;
 }
 
-static void apply_par(BDD l, BDD r)
-{
-  BDD res = apply_rec(l, r);
-  PUSHREF(res);
-}
 
 static BDD apply_rec(BDD l, BDD r)
 {
-  BddCacheData *entry;
-  BDD res;
-
-  switch (applyop)
-    {
+   BddCacheData *entry;
+   BDD res;
+   
+   switch (applyop)
+   {
     case bddop_and:
-      if (l == r)
-	return l;
-      if (ISZERO(l)  ||  ISZERO(r))
-	return 0;
-      if (ISONE(l))
-	return r;
-      if (ISONE(r))
-	return l;
-      break;
+       if (l == r)
+	  return l;
+       if (ISZERO(l)  ||  ISZERO(r))
+	  return 0;
+       if (ISONE(l))
+	  return r;
+       if (ISONE(r))
+	  return l;
+       break;
     case bddop_or:
-      if (l == r)
-	return l;
-      if (ISONE(l)  ||  ISONE(r))
-	return 1;
-      if (ISZERO(l))
-	return r;
-      if (ISZERO(r))
-	return l;
-      break;
+       if (l == r)
+	  return l;
+       if (ISONE(l)  ||  ISONE(r))
+	  return 1;
+       if (ISZERO(l))
+	  return r;
+       if (ISZERO(r))
+	  return l;
+       break;
     case bddop_xor:
-      if (l == r)
-	return 0;
-      if (ISZERO(l))
-	return r;
-      if (ISZERO(r))
-	return l;
-      break;
+       if (l == r)
+	  return 0;
+       if (ISZERO(l))
+	  return r;
+       if (ISZERO(r))
+	  return l;
+       break;
     case bddop_nand:
-      if (ISZERO(l) || ISZERO(r))
-	return 1;
-      break;
+       if (ISZERO(l) || ISZERO(r))
+	  return 1;
+       break;
     case bddop_nor:
-      if (ISONE(l)  ||  ISONE(r))
-	return 0;
-      break;
-    case bddop_imp:
+       if (ISONE(l)  ||  ISONE(r))
+	  return 0;
+       break;
+   case bddop_imp:
       if (ISZERO(l))
-	return 1;
+	 return 1;
       if (ISONE(l))
-	return r;
+	 return r;
       if (ISONE(r))
-	return 1;
+	 return 1;
       break;
-    }
+   }
 
-  if (ISCONST(l)  &&  ISCONST(r))
-    res = oprres[applyop][l<<1 | r];
-  else
-    {
+   if (ISCONST(l)  &&  ISCONST(r))
+      res = oprres[applyop][l<<1 | r];
+   else
+   {
       entry = BddCache_lookup(&applycache, APPLYHASH(l,r,applyop));
-
+      
       if (entry->a == l  &&  entry->b == r  &&  entry->c == applyop)
-	{
-	  #ifdef CACHESTATS
-	  bddcachestats.opHit++;
-	  #endif
-	  return entry->r.res;
-	}
-      #ifdef CACHESTATS
+      {
+#ifdef CACHESTATS
+	 bddcachestats.opHit++;
+#endif
+	 return entry->r.res;
+      }
+#ifdef CACHESTATS
       bddcachestats.opMiss++;
-      #endif
-
-      int i;
+#endif
+      
       if (LEVEL(l) == LEVEL(r))
-	{
-	  cilk_spawn apply_par(LOW(l), LOW(r));
-	  cilk_spawn apply_par(HIGH(l), HIGH(r));
-	  cilk_sync;
-	  res = bdd_makenode(LEVEL(l), READREF(2), READREF(1));
-	}
-      else if (LEVEL(l) < LEVEL(r))
-	{
-	  cilk_spawn apply_par(LOW(l), r);
-	  cilk_spawn apply_par(HIGH(l), r);
-	  cilk_sync;
-	  res = bdd_makenode(LEVEL(l), READREF(2), READREF(1));
-	}
+      {
+	 PUSHREF( apply_rec(LOW(l), LOW(r)) );
+	 PUSHREF( apply_rec(HIGH(l), HIGH(r)) );
+	 res = bdd_makenode(LEVEL(l), READREF(2), READREF(1));
+      }
       else
-	{
-	  cilk_spawn apply_par(l, LOW(r));
-	  cilk_spawn apply_par(l, HIGH(r));
-	  cilk_sync;
-	  res = bdd_makenode(LEVEL(r), READREF(2), READREF(1));
-	}
+      if (LEVEL(l) < LEVEL(r))
+      {
+	 PUSHREF( apply_rec(LOW(l), r) );
+	 PUSHREF( apply_rec(HIGH(l), r) );
+	 res = bdd_makenode(LEVEL(l), READREF(2), READREF(1));
+      }
+      else
+      {
+	 PUSHREF( apply_rec(l, LOW(r)) );
+	 PUSHREF( apply_rec(l, HIGH(r)) );
+	 res = bdd_makenode(LEVEL(r), READREF(2), READREF(1));
+      }
 
       POPREF(2);
 
@@ -642,133 +632,9 @@ static BDD apply_rec(BDD l, BDD r)
       entry->b = r;
       entry->c = applyop;
       entry->r.res = res;
-    }
+   }
 
-  return res;
-}
-
-static BDD apply_rec(BDD l, BDD r)
-{
-	BddCacheData *entry;
-	BDD res;
-	
-	switch (applyop)
-	{
-		case bddop_and:
-			if (l == r)
-				return l;
-			if (ISZERO(l)  ||  ISZERO(r))
-				return 0;
-			if (ISONE(l))
-				return r;
-			if (ISONE(r))
-				return l;
-			break;
-		case bddop_or:
-			if (l == r)
-				return l;
-			if (ISONE(l)  ||  ISONE(r))
-				return 1;
-			if (ISZERO(l))
-				return r;
-			if (ISZERO(r))
-				return l;
-			break;
-		case bddop_xor:
-			if (l == r)
-				return 0;
-			if (ISZERO(l))
-				return r;
-			if (ISZERO(r))
-				return l;
-			break;
-		case bddop_nand:
-			if (ISZERO(l) || ISZERO(r))
-				return 1;
-			break;
-		case bddop_nor:
-			if (ISONE(l)  ||  ISONE(r))
-				return 0;
-			break;
-		case bddop_imp:
-			if (ISZERO(l))
-				return 1;
-			if (ISONE(l))
-				return r;
-			if (ISONE(r))
-				return 1;
-			break;
-	}
-	
-	if (ISCONST(l)  &&  ISCONST(r))
-		res = oprres[applyop][l<<1 | r];
-	else
-	{
-		entry = BddCache_lookup(&applycache, APPLYHASH(l,r,applyop));
-		
-		if (entry->a == l  &&  entry->b == r  &&  entry->c == applyop)
-		{
-			#ifdef CACHESTATS
-			bddcachestats.opHit++;
-			#endif
-			return entry->r.res;
-		}
-		#ifdef CACHESTATS
-		bddcachestats.opMiss++;
-		#endif
-		
-		int i;
-		if (LEVEL(l) == LEVEL(r))
-		{
-			for (i = 0; i < 2; i++)
-			{
-				if (i == 0)
-					PUSHREF( apply_rec(LOW(l), LOW(r)) );
-				else if (i == 1)
-					PUSHREF( apply_rec(HIGH(l), HIGH(r)) );
-			}
-			PUSHREF( apply_rec(LOW(l), LOW(r)) );
-			PUSHREF( apply_rec(HIGH(l), HIGH(r)) );
-			res = bdd_makenode(LEVEL(l), READREF(2), READREF(1));
-		}
-		else if (LEVEL(l) < LEVEL(r))
-		{
-			
-			for (i = 0; i < 2; i++)
-			{
-				if (i == 0)
-					PUSHREF( apply_rec(LOW(l), r) );
-				else if (i == 1)
-					PUSHREF( apply_rec(HIGH(l), r) );
-			}
-			
-			PUSHREF( apply_rec(LOW(l), r) );
-			PUSHREF( apply_rec(HIGH(l), r) );
-			res = bdd_makenode(LEVEL(l), READREF(2), READREF(1));
-		}
-		else
-		{
-			for (i = 0; i < 2; i++)
-			{
-				if (i == 0)
-					PUSHREF( apply_rec(l, LOW(r)) );
-				else if (i == 1)
-					PUSHREF( apply_rec(l, HIGH(r)) );
-			}
-			PUSHREF( apply_rec(l, LOW(r)) );
-			PUSHREF( apply_rec(l, HIGH(r)) );
-			res = bdd_makenode(LEVEL(r), READREF(2), READREF(1));
-		}
-		
-		POPREF(2);
-		
-		entry->a = l;
-		entry->b = r;
-		entry->c = applyop;
-		entry->r.res = res;
-	}
-	
-	return res;
+   return res;
 }
 
 

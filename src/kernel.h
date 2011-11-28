@@ -42,6 +42,7 @@
 
 #include <limits.h>
 #include <setjmp.h>
+#include <pthread.h>
 #include "bdd.h"
 
 /*=== SANITY CHECKS ====================================================*/
@@ -156,7 +157,28 @@ extern bddCacheStat bddcachestats;
 #define HIGHp(p)    ((p)->high)
 
    /* Stacking for garbage collector */
+// static pthread_rwlock_t bddrefstacklock;
+// static inline int pushRef(int ref) {
+// 	pthread_rwlock_wrlock(&bddrefstacklock);
+// 	*(bddrefstacktop++) = (ref);
+// 	pthread_rwlock_unlock(&bddrefstacklock);
+// 	return ref;
+// }
+// static inline int readRef(int a) {
+// 	pthread_rwlock_rdlock(&bddrefstacklock);
+// 	int ref = *(bddrefstacktop-(a));
+// 	pthread_rwlock_unlock(&bddrefstacklock);
+// 	return ref;
+// }
+// static inline void popRef(int ref) {
+// 	pthread_rwlock_wrlock(&bddrefstacklock);
+// 	bddrefstacktop -= (ref);
+// 	pthread_rwlock_unlock(&bddrefstacklock);
+// }
 #define INITREF    bddrefstacktop = bddrefstack
+// #define PUSHREF(a) pushRef(a)
+// #define READREF(a) readRef(a)
+// #define POPREF(a)  popRef(a)
 #define PUSHREF(a) *(bddrefstacktop++) = (a)
 #define READREF(a) *(bddrefstacktop-(a))
 #define POPREF(a)  bddrefstacktop -= (a)
