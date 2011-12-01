@@ -1,6 +1,6 @@
 AM_CPPFLAGS = -I$(top_builddir)
 
-include_HEADERS = bdd.h fdd.h bvec.h
+include_HEADERS = bdd.h fdd.h bvec.h pbdd.h
 
 lib_LTLIBRARIES = libbdd.la
 libbdd_la_SOURCES = \
@@ -20,7 +20,9 @@ libbdd_la_SOURCES = \
  prime.c \
  prime.h \
  reorder.c \
- tree.c
+ tree.c \
+ pbddcache.c \
+ pbddop.c
 
 # See the `Updating version info' node of the Libtool manual before
 # changing this.

@@ -4,13 +4,12 @@
 
 
 #include <pthread.h>
-#include "../bdd.h"
-#include "../kernel.h"
+#include "bdd.h"
+#include "kernel.h"
 
 #define MAX_BDD_OP (bddop_simplify + 1)
 
 typedef long long hash_t;
-
 
 typedef struct
 {
@@ -40,6 +39,8 @@ extern long long APPLYHASH(BDD l, BDD r);
 
 #define pBddCache_LookUp(cache, hash) (&(cache)->table[hash] % (cache)->tablesize;
 
+//extern pBddCacheData * pBddCache_LookUp(pBddCache *, hash_t hash);
+
 extern int pBddCache_init(pBddCache *, int);
 extern int pBddCache_done(pBddCache *);
 extern int pBddCache_resize(pBddCache *, int);
@@ -57,7 +58,7 @@ extern int pbdd_operator_init(int cacheSize);
 extern void pbdd_operator_done(void);
 
 extern int pbdd_init(int initnodesize, int cachesize);
-extern int pbdd_done();
+extern void pbdd_done();
 extern BDD pbdd_check_terminal_case(BDD l, BDD r, int applyop);
 extern BDD pbdd_apply_rec(BDD l, BDD r, int applyop);
 extern BDD pbdd_apply(BDD l, BDD r, int applyop);

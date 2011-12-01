@@ -45,6 +45,8 @@
 
 #include <stdio.h>
 
+/* Parallel libraries */
+
 /*=== Defined operators for apply calls ================================*/
 
 #define bddop_and       0

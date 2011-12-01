@@ -56,7 +56,7 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libbdd_la_LIBADD =
 am_libbdd_la_OBJECTS = bddio.lo bddop.lo bvec.lo cache.lo cppext.lo \
 	fdd.lo imatrix.lo kernel.lo pairs.lo prime.lo reorder.lo \
-	tree.lo
+	tree.lo pbddcache.lo pbddop.lo
 libbdd_la_OBJECTS = $(am_libbdd_la_OBJECTS)
 am_bddtest_OBJECTS = bddtest.$(OBJEXT)
 bddtest_OBJECTS = $(am_bddtest_OBJECTS)
@@ -70,7 +70,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/fdd.Plo ./$(DEPDIR)/imatrix.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/kernel.Plo ./$(DEPDIR)/pairs.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/prime.Plo ./$(DEPDIR)/reorder.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/tree.Plo
+@AMDEP_TRUE@	./$(DEPDIR)/tree.Plo  ./$(DEPDIR)/pbddop.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/pbddcache.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) \
@@ -193,7 +194,7 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 AM_CPPFLAGS = -I$(top_builddir)
-include_HEADERS = bdd.h fdd.h bvec.h
+include_HEADERS = bdd.h fdd.h bvec.h pbdd.h
 lib_LTLIBRARIES = libbdd.la
 libbdd_la_SOURCES = \
  bddio.c \
@@ -212,8 +213,9 @@ libbdd_la_SOURCES = \
  prime.c \
  prime.h \
  reorder.c \
- tree.c
-
+ tree.c \
+ pbddcache.c \
+ pbddop.c
 
 # See the `Updating version info' node of the Libtool manual before
 # changing this.
@@ -312,6 +314,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prime.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reorder.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tree.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pbddcache.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pbddop.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
