@@ -37,7 +37,10 @@ extern long long APPLYHASH(BDD l, BDD r);
 #define NODEHASH(lvl,l,h)  (TRIPLE(lvl,l,h) % bddnodesize)
 #endif
 
-#define pBddCache_LookUp(cache, hash) (&(cache)->table[hash] % (cache)->tablesize;
+pBddCache *cur_cache;
+pBddCache papplycache[MAX_BDD_OP];
+
+#define pBddCache_lookup(cache, hash) (&(cache)->table[hash % (cache)->tablesize])
 
 //extern pBddCacheData * pBddCache_LookUp(pBddCache *, hash_t hash);
 

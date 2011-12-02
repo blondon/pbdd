@@ -2,9 +2,7 @@
 #include "pbdd.h"
 #include <stdlib.h>
 
-pBddCache *cur_cache;
-pBddCache pappplycache[MAX_BDD_OP];
-
+#define pBddCache_LookUp(cache, hash) (&(cache)->table[hash] % (cache)->tablesize;
 
 hash_t APPLYHASH(BDD l, BDD r)
 {
@@ -84,7 +82,7 @@ int pbdd_operator_init(int cachesize)
 	return 0;
 }
 
-void pbdd_operator_done(void)
+void pbdd_operator_done()
 {
 	int i;
 

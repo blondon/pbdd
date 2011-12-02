@@ -1,7 +1,7 @@
 #include "pbdd.h"
 #include <stdlib.h>
 #include <assert.h>
-#include </fs/buzz/cs714-fa11-022/localInstalls/include/cilk/cilk.h>
+#include <cilk/cilk.h>
 
 const BDD IN_PROGRESS = -1;
 
@@ -18,7 +18,7 @@ int pbdd_init(int initnodesize, int cachesize)
 
 void pbdd_done()
 {
-	pdd_operator_done();
+	pbdd_operator_done();
 }
 
 BDD pbdd_makenode(unsigned int level, BDD low, BDD high, int *creat)
@@ -178,8 +178,7 @@ BDD pbdd_apply_rec(BDD l, BDD r, int applyop)
 	
 	hash = APPLYHASH(l,r);
 	cur_cache = pbdd_get_applycache(applyop);
-	entry = pBddCache_lookup(&cur_cache,hash);
-	
+	entry = pBddCache_lookup(cur_cache,hash);
 	
 	/* acquire lock on cache entry */
 	pthread_rwlock_rdlock(&entry->lock);
@@ -202,20 +201,20 @@ BDD pbdd_apply_rec(BDD l, BDD r, int applyop)
 	if (LEVEL(l) == LEVEL(r))
 	{
 		level = LEVEL(l);
-		low = cilk_spawn pbdd_apply_rec(LOW(l), LOW(r),applyop);
-		high = pbdd_apply_rec(HIGH(l), HIGH(r),applyop);
+		low = cilk_spawn  pbdd_apply_rec(LOW(l), LOW(r), applyop);
+		high = pbdd_apply_rec(HIGH(l), HIGH(r), applyop);
 	}
 	else if (LEVEL(l) < LEVEL(r))
 	{
 		level = LEVEL(l);
-		low = cilk_spawn  pbdd_apply_rec(LOW(l), r, applyop);
-		high = pbdd_apply_rec(HIGH(l), r,applyop);
+		low = cilk_spawn pbdd_apply_rec(LOW(l), r, applyop);
+		high = pbdd_apply_rec(HIGH(l), r, applyop);
 	}
 	else
 	{
 		level = LEVEL(r);
-		low = cilk_spawn pbdd_apply_rec(l, LOW(r),applyop);
-		high = pbdd_apply_rec(l, HIGH(r),applyop);
+		low = cilk_spawn pbdd_apply_rec(l, LOW(r), applyop);
+		high = pbdd_apply_rec(l, HIGH(r), applyop);
 	}
 	cilk_sync;
 	res = pbdd_makenode(level, low, high, &creat);

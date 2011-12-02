@@ -194,7 +194,7 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 AM_CPPFLAGS = -I$(top_builddir)
-include_HEADERS = bdd.h fdd.h bvec.h pbdd.h
+include_HEADERS = bdd.h fdd.h bvec.h pbdd.h kernel.h
 lib_LTLIBRARIES = libbdd.la
 libbdd_la_SOURCES = \
  bddio.c \
@@ -208,7 +208,6 @@ libbdd_la_SOURCES = \
  imatrix.c \
  imatrix.h \
  kernel.c \
- kernel.h \
  pairs.c \
  prime.c \
  prime.h \
