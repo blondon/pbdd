@@ -49,6 +49,8 @@
 #include "cache.h"
 #include "prime.h"
 
+#include "pbdd.h"
+
 /*************************************************************************
   Various definitions and global variables
 *************************************************************************/
@@ -91,7 +93,7 @@ int          bddnodesize;           /* Number of allocated nodes */
 int          bddmaxnodesize;        /* Maximum allowed number of nodes */
 int          bddmaxnodeincrease;    /* Max. # of nodes used to inc. table */
 BddNode*     bddnodes;          /* All of the bdd nodes */
-int          bddfreepos;        /* First free node */
+volatile int          bddfreepos;        /* First free node */
 int          bddfreenum;        /* Number of free nodes */
 long int     bddproduced;       /* Number of new nodes ever produced */
 int          bddvarnum;         /* Number of defined BDD variables */
@@ -116,6 +118,7 @@ static bddinthandler  err_handler;     /* Error handler */
 static bddgbchandler  gbc_handler;     /* Garbage collection handler */
 static bdd2inthandler resize_handler;  /* Node-table-resize handler */
 
+static int cachesize;
 
    /* Strings for all error mesages */
 static char *errorstrings[BDD_ERRNUM] =
@@ -235,6 +238,10 @@ int bdd_init(int initnodesize, int cs)
    if (setjmp(bddexception) != 0)
       assert(0);
 
+   /* initialize pbdd */
+   err = pbdd_init(initnodesize, cs);
+   if (err < 0)
+     return bdd_error(err);
    return 0;
 }
 
@@ -276,6 +283,8 @@ void bdd_done(void)
    err_handler = NULL;
    gbc_handler = NULL;
    resize_handler = NULL;
+
+   pbdd_done();
 }
 
 

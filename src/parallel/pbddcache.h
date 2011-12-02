@@ -1,11 +1,13 @@
 #ifndef _PBDDCACHE_H
 #define _PBDDCACHE_H
 
+#include "pbdd.h"
+
 #ifdef CPLUSPLUS
 extern "C" {
 #endif
 
-#include <pthread.h>
+
 
 typedef struct
 {
@@ -17,39 +19,39 @@ typedef struct
 	} r;
 	int a, b, c;
 	pthread_wlock_t lock;
-} BddCacheData;
+} pBddCacheData;
 
 typedef struct
 {
-	BddCacheData *table;
+	pBddCacheData *table;
 	int tablesize;
-} BddCache;
+} pBddCache;
 
 #ifndef APPLYHASH
-extern long long APPLYHASH(BDD l, BDD r, int op);
+extern long long APPLYHASH(BDD l, BDD r);
 #endif
 
 #ifndef NODEHASH
 #define NODEHASH(lvl,l,h)  (TRIPLE(lvl,l,h) % bddnodesize)
 #endif
 
-#define BddCache_LookUp(cache, hash) (&(cache)->table[hash] % (cache)->tablesize;
+#define pBddCache_LookUp(cache, hash) (&(cache)->table[hash] % (cache)->tablesize;
 
-extern int BddCache_init(BddCache *, int);
-extern int BddCache_done(BddCache *);
-extern int BddCache_resize(BddCache *, int);
-extern void BddCache_reset(BddCache *);
+extern int pBddCache_init(pBddCache *, int);
+extern int pBddCache_done(pBddCache *);
+extern int pBddCache_resize(pBddCache *, int);
+extern void pBddCache_reset(pBddCache *);
 
-extern BddCache *cur_cache;
-extern BddCache papplycache[MAX_BDD_OP];
+extern pBddCache *cur_cache;
+extern pBddCache papplycache[MAX_BDD_OP];
 
-static inline BddCache *pbdd_get_applycache(int op);
+static inline pBddCache *pbdd_get_applycache(int op)
 {
 	return &papplycache[op];
 }
 
 extern int pbdd_operator_init(int cacheSize);
-extern void pbdd_operator =_done(void);
+extern void pbdd_operator_done(void);
 
 #ifdef CPLUSCPLUS
 }

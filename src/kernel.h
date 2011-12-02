@@ -108,8 +108,10 @@ extern int*      bddlevel2var;
 extern jmp_buf   bddexception;
 extern int       bddreorderdisabled;
 extern int       bddresized;
+extern int       bddfreenum;
+extern long int  bddproduced;
 extern bddCacheStat bddcachestats;
-
+volatile int     bddfreepos;
 #ifdef CPLUSPLUS
 }
 #endif
@@ -119,6 +121,7 @@ extern bddCacheStat bddcachestats;
 
 #define MAXVAR 0x1FFFFF
 #define MAXREF 0x3FF
+#define INVALID_BDD -1
 
    /* Reference counting */
 #define DECREF(n) if (bddnodes[n].refcou!=MAXREF && bddnodes[n].refcou>0) bddnodes[n].refcou--
@@ -139,7 +142,9 @@ extern bddCacheStat bddcachestats;
 #define MARKEDp(p)  (node->level & MARKON)
 
    /* Hashfunctions */
-
+   
+   
+#define HASH(a)        (bddnodes[a].hash)
 #define PAIR(a,b)      ((unsigned int)((((unsigned int)a)+((unsigned int)b))*(((unsigned int)a)+((unsigned int)b)+((unsigned int)1))/((unsigned int)2)+((unsigned int)a)))
 #define TRIPLE(a,b,c)  ((unsigned int)(PAIR((unsigned int)c,PAIR(a,b))))
 
@@ -155,6 +160,19 @@ extern bddCacheStat bddcachestats;
 #define LEVELp(p)   ((p)->level)
 #define LOWp(p)     ((p)->low)
 #define HIGHp(p)    ((p)->high)
+#define SETLOW(a,n)    (bddnodes[a].low = n)
+#define SETHIGH(a,n)    (bddnodes[a].high = n)
+#define NEXT(a)        (bddnodes[a].next)
+#define SETNEXT(a,n)   (bddnodes[a].next = n)
+#define SETHASH(a,n)   (bddnodes[a].hash = n)
+#define SETLEVELREF(n,v) { bddnodes[n].refcou = 0; bddnodes[n].level = v;}
+
+#define CREATE_NODE(n,lev,lo,hi,nxt) { \
+    SETLEVELREF(n, lev); \
+    SETLOW(n, lo); \
+    SETHIGH(n, hi); \
+    SETNEXT(n, nxt); \
+    }
 
    /* Stacking for garbage collector */
 // static pthread_rwlock_t bddrefstacklock;
