@@ -21,14 +21,17 @@ public:
 	
 	int getNumClauses() const { return _clausecnt.size(); }
 	
+	const DNF& getDNF() const { return _dnf; }
+	DNF& getDNF() { return _dnf; }
+	
 	const StringToIntMap& getVariableRefCounts() const { return _varcnt; }
 	StringToIntMap& getVariableRefCounts() { return _varcnt; }
 	
 	const ClauseToIntMap& getClauseRefCounts() const { return _clausecnt; }
 	ClauseToIntMap& getClauseRefCounts() { return _clausecnt; }
 	
-	const DNF& getDNF() const { return _dnf; }
-	DNF& getDNF() { return _dnf; }
+	const StringToClausesMap& getVariableClauseRefs() const { return _var2clauses; }
+	StringToClausesMap& getVariableClauseRefs() { return _var2clauses; }
 	
 	void print() const;
 
@@ -36,9 +39,10 @@ private:
 	
 	void parse(const std::string& formula);
 	
-	StringToIntMap _varcnt;
-	ClauseToIntMap _clausecnt;
 	BoolExprString *_expr;
 	DNF _dnf;
+	StringToIntMap _varcnt;
+	ClauseToIntMap _clausecnt;
+	StringToClausesMap _var2clauses;
 };
 

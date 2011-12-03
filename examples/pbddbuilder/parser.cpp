@@ -26,7 +26,7 @@ void Parser::parse(const string& formula)
 	_expr = parser.parse(formula);
 	_expr = BoolExprString::getDisjunctiveNormalForm(_expr);
 	_expr->getDNFTermRoots(inserter(_dnf, _dnf.end()));
-	// traverse tree to count variable references
+	// traverse tree to count variable references and map variables to clauses
 	for (DNFIter it = _dnf.begin(); it != _dnf.end(); it++)
 	{
 		Clause *term = *it;
@@ -37,16 +37,20 @@ void Parser::parse(const string& formula)
 			string key = *it;
 			if (_varcnt.count(key) == 0) {
 				_varcnt[key] = 0;
+				_var2clauses[key] = vector<Clause*>();
 			}
 			_varcnt[key] = _varcnt[key] + 1;
+			_var2clauses[key].push_back(term);
 		}
 		for (StringSetIter it = neg.begin(); it != neg.end(); it++)
 		{
 			string key = *it;
 			if (_varcnt.count(key) == 0) {
 				_varcnt[key] = 0;
+				_var2clauses[key] = vector<Clause*>();
 			}
 			_varcnt[key] = _varcnt[key] + 1;
+			_var2clauses[key].push_back(term);
 		}
 	}
 	// traverse tree again to count references within sums
