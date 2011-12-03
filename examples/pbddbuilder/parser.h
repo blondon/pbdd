@@ -13,25 +13,28 @@ class Parser
 {
 public:
 
-	Parser(const std::string formula);
+	Parser(const std::string& formula);
 	
 	~Parser();
 	
-	int GetNumVariables() const { return _varcnt.size(); }
+	int getNumVariables() const { return _varcnt.size(); }
 	
-	int GetNumClauses() const { return _clausecnt.size(); }
+	int getNumClauses() const { return _clausecnt.size(); }
 	
-	const StringToIntMap* GetVariableRefCounts() const { return &_varcnt; }
-	StringToIntMap* GetVariableRefCounts() { return &_varcnt; }
+	const StringToIntMap& getVariableRefCounts() const { return _varcnt; }
+	StringToIntMap& getVariableRefCounts() { return _varcnt; }
 	
-	const ClauseToIntMap* GetClauseRefCounts() const { return &_clausecnt; }
-	ClauseToIntMap* GetClauseRefCounts() { return &_clausecnt; }
+	const ClauseToIntMap& getClauseRefCounts() const { return _clausecnt; }
+	ClauseToIntMap& getClauseRefCounts() { return _clausecnt; }
 	
-	void Print() const;
+	const DNF& getDNF() const { return _dnf; }
+	DNF& getDNF() { return _dnf; }
+	
+	void print() const;
 
 private:
 	
-	void Parse(const std::string formula);
+	void parse(const std::string& formula);
 	
 	StringToIntMap _varcnt;
 	ClauseToIntMap _clausecnt;

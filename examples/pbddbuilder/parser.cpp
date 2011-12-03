@@ -10,16 +10,16 @@ using namespace boolstuff;
 
 /// Parser IMPLEMENTATION ///
 
-Parser::Parser(const string formula)
+Parser::Parser(const string& formula)
 {
-	Parse(formula);
+	parse(formula);
 }
 
 Parser::~Parser()
 {
 }
 
-void Parser::Parse(const string formula)
+void Parser::parse(const string& formula)
 {
 	// parse input formula
 	BoolExprParser parser;
@@ -29,8 +29,8 @@ void Parser::Parse(const string formula)
 	// traverse tree to count variable references
 	for (DNFIter it = _dnf.begin(); it != _dnf.end(); it++)
 	{
-		const Clause *term = *it;
-		set<string> pos, neg;
+		Clause *term = *it;
+		StringSet pos, neg;
 		term->getTreeVariables(pos, neg);
 		for (StringSetIter it = pos.begin(); it != pos.end(); it++)
 		{
@@ -52,9 +52,9 @@ void Parser::Parse(const string formula)
 	// traverse tree again to count references within sums
 	for (DNFIter it = _dnf.begin(); it != _dnf.end(); it++)
 	{
-		const Clause *term = *it;
+		Clause *term = *it;
 		_clausecnt[term] = 0;
-		set<string> pos, neg;
+		StringSet pos, neg;
 		term->getTreeVariables(pos, neg);
 		for (StringSetIter it = pos.begin(); it != pos.end(); it++)
 		{
@@ -69,13 +69,13 @@ void Parser::Parse(const string formula)
 	}
 }
 
-void Parser::Print() const
+void Parser::print() const
 {
 	cout << "Formula    : " << _expr << endl;
-	for (DNF::const_iterator it = _dnf.begin(); it != _dnf.end(); it++)
+	for (DNFIter it = _dnf.begin(); it != _dnf.end(); it++)
 	{
-		const BoolExprString *term = *it;
-		set<string> pos, neg;
+		Clause *term = *it;
+		StringSet pos, neg;
 		term->getTreeVariables(pos, neg);
 		cout << "Term       : " << term << endl;
 		cout << "  Positives: " << pos << endl;

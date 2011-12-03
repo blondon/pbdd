@@ -22,10 +22,10 @@ typedef BoolExprString Clause;
 typedef std::vector<Clause*> DNF;
 typedef std::set<std::string> StringSet;
 typedef std::map<std::string,int> StringToIntMap;
-typedef std::map<const Clause*,int> ClauseToIntMap;
+typedef std::map<Clause*,int> ClauseToIntMap;
 typedef std::map<int,std::vector<Clause*> > IntToClausesMap;
 
 // ITERATORS
-typedef StringSet::iterator StringSetIter;
-typedef DNF::iterator DNFIter;
+typedef StringSet::const_iterator StringSetIter;
+typedef DNF::const_iterator DNFIter;
 
