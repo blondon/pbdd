@@ -9,19 +9,23 @@
 
 #include <string>
 #include <memory>
-#include <map>
 #include <set>
 #include <vector>
+#include <map>
 #include <boolstuff/BoolExprParser.h>
+#include <bdd.h>
 
-typedef boolstuff::BoolExpr<std::string> BoolExprString;
-typedef std::vector< const boolstuff::BoolExpr<std::string> *> DNF;
-typedef DNF::iterator DNFIter;
-typedef std::set<std::string> StringSet;
-typedef StringSet::iterator StringSetIter;
+// DATA TYPES
 typedef bdd Variable;
+typedef boolstuff::BoolExpr<std::string> BoolExprString;
 typedef BoolExprString Clause;
-typedef std::unordered_map<std::string,int> StringToIntMap;
-typedef std::unordered_map<Clause*,int> ClauseToIntMap;
-typedef std::unordered_map<int,std::vector<Clause*> > IntToClausesMap;
+typedef std::vector<Clause*> DNF;
+typedef std::set<std::string> StringSet;
+typedef std::map<std::string,int> StringToIntMap;
+typedef std::map<const Clause*,int> ClauseToIntMap;
+typedef std::map<int,std::vector<Clause*> > IntToClausesMap;
+
+// ITERATORS
+typedef StringSet::iterator StringSetIter;
+typedef DNF::iterator DNFIter;
 
