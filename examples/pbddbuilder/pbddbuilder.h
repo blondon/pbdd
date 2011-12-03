@@ -23,7 +23,7 @@ typedef std::vector<Clause*> DNF;
 typedef std::set<std::string> StringSet;
 typedef std::map<std::string,int> StringToIntMap;
 typedef std::map<Clause*,int> ClauseToIntMap;
-typedef std::map<int,std::vector<Clause*> > IntToClausesMap;
+typedef std::map<std::string,std::vector<Clause*> > StringToClausesMap;
 
 // ITERATORS
 typedef StringSet::const_iterator StringSetIter;
