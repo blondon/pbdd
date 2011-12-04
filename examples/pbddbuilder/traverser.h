@@ -1,6 +1,6 @@
 /*
  * FILE:	traverser.h
- * DESC:	Builds a BDD from a Boolean formula.
+ * DESC:	Builds a BDD from a given DNF and ordering.
  */
 
 #ifndef TRAVERSER_H

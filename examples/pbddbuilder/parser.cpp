@@ -23,11 +23,11 @@ void Parser::parse(const string& formula)
 {
 	// parse input formula
 	BoolExprParser parser;
-	_expr = parser.parse(formula);
-	_expr = BoolExprString::getDisjunctiveNormalForm(_expr);
-	_expr->getDNFTermRoots(inserter(_dnf, _dnf.end()));
+	expr_ = parser.parse(formula);
+	expr_ = BoolExprString::getDisjunctiveNormalForm(expr_);
+	expr_->getDNFTermRoots(inserter(dnf_, dnf_.end()));
 	// traverse tree to count variable references and map variables to clauses
-	for (DNFIter it = _dnf.begin(); it != _dnf.end(); it++)
+	for (DNFIter it = dnf_.begin(); it != dnf_.end(); it++)
 	{
 		Clause *term = *it;
 		StringSet pos, neg;
@@ -35,48 +35,48 @@ void Parser::parse(const string& formula)
 		for (StringSetIter it = pos.begin(); it != pos.end(); it++)
 		{
 			string key = *it;
-			if (_varcnt.count(key) == 0) {
-				_varcnt[key] = 0;
-				_var2clauses[key] = vector<Clause*>();
+			if (varcnt_.count(key) == 0) {
+				varcnt_[key] = 0;
+				var2clauses_[key] = vector<Clause*>();
 			}
-			_varcnt[key] = _varcnt[key] + 1;
-			_var2clauses[key].push_back(term);
+			varcnt_[key] = varcnt_[key] + 1;
+			var2clauses_[key].push_back(term);
 		}
 		for (StringSetIter it = neg.begin(); it != neg.end(); it++)
 		{
 			string key = *it;
-			if (_varcnt.count(key) == 0) {
-				_varcnt[key] = 0;
-				_var2clauses[key] = vector<Clause*>();
+			if (varcnt_.count(key) == 0) {
+				varcnt_[key] = 0;
+				var2clauses_[key] = vector<Clause*>();
 			}
-			_varcnt[key] = _varcnt[key] + 1;
-			_var2clauses[key].push_back(term);
+			varcnt_[key] = varcnt_[key] + 1;
+			var2clauses_[key].push_back(term);
 		}
 	}
 	// traverse tree again to count references within sums
-	for (DNFIter it = _dnf.begin(); it != _dnf.end(); it++)
+	for (DNFIter it = dnf_.begin(); it != dnf_.end(); it++)
 	{
 		Clause *term = *it;
-		_clausecnt[term] = 0;
+		clausecnt_[term] = 0;
 		StringSet pos, neg;
 		term->getTreeVariables(pos, neg);
 		for (StringSetIter it = pos.begin(); it != pos.end(); it++)
 		{
 			string key = *it;
-			_clausecnt[term] += _varcnt[key];
+			clausecnt_[term] += varcnt_[key];
 		}
 		for (StringSetIter it = neg.begin(); it != neg.end(); it++)
 		{
 			string key = *it;
-			_clausecnt[term] += _varcnt[key];
+			clausecnt_[term] += varcnt_[key];
 		}
 	}
 }
 
 void Parser::print() const
 {
-	cout << "Formula    : " << _expr << endl;
-	for (DNFIter it = _dnf.begin(); it != _dnf.end(); it++)
+	cout << "Formula    : " << expr_ << endl;
+	for (DNFIter it = dnf_.begin(); it != dnf_.end(); it++)
 	{
 		Clause *term = *it;
 		StringSet pos, neg;

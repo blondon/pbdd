@@ -1,6 +1,6 @@
 /*
  * FILE:	traverser.cpp
- * DESC:	Builds a BDD from a Boolean formula.
+ * DESC:	Builds a BDD from a given DNF and ordering.
  */
 
 #include "traverser.h"
@@ -18,8 +18,13 @@ Traverser::~Traverser()
 bdd Traverser::buildBDD(const DNF& dnf, const StringToIntMap& varOrder)
 {
 	// init BuDDy
-	bdd_init(10000,10000);
-	bdd_setvarnum(varOrder.size());
+	if (bdd_isrunning() == 0) {
+		bdd_init(10000,10000);
+		bdd_setvarnum(varOrder.size());
+	}
+	else {
+		bdd_extvarnum(varOrder.size());
+	}
 	// iterate over terms; evaluate each conjunction separately
 	DNFIter it = dnf.begin();
 	const Clause *term = *it;
@@ -31,7 +36,6 @@ bdd Traverser::buildBDD(const DNF& dnf, const StringToIntMap& varOrder)
 		res |= buildTermBDD(term, varOrder);
 		++it;
 	}
-	//cilk_sync;
 	return res;
 }
 
