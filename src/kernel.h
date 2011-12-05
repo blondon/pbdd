@@ -42,7 +42,6 @@
 
 #include <limits.h>
 #include <setjmp.h>
-#include <pthread.h>
 #include "bdd.h"
 
 /*=== SANITY CHECKS ====================================================*/
@@ -100,6 +99,7 @@ extern int       bddnodesize;        /* Number of allocated nodes */
 extern int       bddmaxnodesize;     /* Maximum allowed number of nodes */
 extern int       bddmaxnodeincrease; /* Max. # of nodes used to inc. table */
 extern BddNode*  bddnodes;           /* All of the bdd nodes */
+
 extern int       bddvarnum;          /* Number of defined BDD variables */
 extern int*      bddrefstack;        /* Internal node reference stack */
 extern int*      bddrefstacktop;     /* Internal node reference stack top */
@@ -175,28 +175,7 @@ volatile int     bddfreepos;
     }
 
    /* Stacking for garbage collector */
-// static pthread_rwlock_t bddrefstacklock;
-// static inline int pushRef(int ref) {
-// 	pthread_rwlock_wrlock(&bddrefstacklock);
-// 	*(bddrefstacktop++) = (ref);
-// 	pthread_rwlock_unlock(&bddrefstacklock);
-// 	return ref;
-// }
-// static inline int readRef(int a) {
-// 	pthread_rwlock_rdlock(&bddrefstacklock);
-// 	int ref = *(bddrefstacktop-(a));
-// 	pthread_rwlock_unlock(&bddrefstacklock);
-// 	return ref;
-// }
-// static inline void popRef(int ref) {
-// 	pthread_rwlock_wrlock(&bddrefstacklock);
-// 	bddrefstacktop -= (ref);
-// 	pthread_rwlock_unlock(&bddrefstacklock);
-// }
 #define INITREF    bddrefstacktop = bddrefstack
-// #define PUSHREF(a) pushRef(a)
-// #define READREF(a) readRef(a)
-// #define POPREF(a)  popRef(a)
 #define PUSHREF(a) *(bddrefstacktop++) = (a)
 #define READREF(a) *(bddrefstacktop-(a))
 #define POPREF(a)  bddrefstacktop -= (a)
