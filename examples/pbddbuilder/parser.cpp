@@ -63,16 +63,16 @@ void Parser::parse(const string& formula)
 	for (DNFIter it = dnf_.begin(); it != dnf_.end(); it++)
 	{
 		ClausePtr clause = *it;
-		clausecnt_[clause->expr] = 0;
+		clausecnt_[clause] = 0;
 		for (StringVectorIter it = clause->posVars.begin(); it != clause->posVars.end(); it++)
 		{
 			string key = *it;
-			clausecnt_[clause->expr] += varcnt_[key];
+			clausecnt_[clause] += varcnt_[key];
 		}
 		for (StringVectorIter it = clause->negVars.begin(); it != clause->negVars.end(); it++)
 		{
 			string key = *it;
-			clausecnt_[clause->expr] += varcnt_[key];
+			clausecnt_[clause] += varcnt_[key];
 		}
 	}
 }

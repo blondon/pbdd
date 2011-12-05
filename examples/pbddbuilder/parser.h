@@ -26,8 +26,8 @@ public:
 	const StringToIntMap& getVariableRefCounts() const { return varcnt_; }
 	StringToIntMap& getVariableRefCounts() { return varcnt_; }
 	
-	const StringToIntMap& getClauseRefCounts() const { return clausecnt_; }
-	StringToIntMap& getClauseRefCounts() { return clausecnt_; }
+	const ClauseToIntMap& getClauseRefCounts() const { return clausecnt_; }
+	ClauseToIntMap& getClauseRefCounts() { return clausecnt_; }
 	
 	const StringToClausesMap& getVariableClauseRefs() const { return var2clauses_; }
 	StringToClausesMap& getVariableClauseRefs() { return var2clauses_; }
@@ -41,7 +41,7 @@ private:
 	BoolExprString *expr_;
 	DNF dnf_;
 	StringToIntMap varcnt_;
-	StringToIntMap clausecnt_;
+	ClauseToIntMap clausecnt_;
 	StringToClausesMap var2clauses_;
 };
 

@@ -38,7 +38,6 @@ int main(int argc, const char* argv[])
 	Parser parser(formula);
 	DNF dnf = parser.getDNF();
 	StringToIntMap varcnt = parser.getVariableRefCounts();
-	StringToIntMap clausecnt = parser.getClauseRefCounts();
 	StringToClausesMap var2clauses = parser.getVariableClauseRefs();
 
 	// create naive ordering

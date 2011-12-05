@@ -30,6 +30,7 @@ typedef std::vector<ClausePtr> DNF;
 typedef std::set<std::string> StringSet;
 typedef std::vector<std::string> StringVector;
 typedef std::map<std::string,int> StringToIntMap;
+typedef std::map<ClausePtr,int> ClauseToIntMap;
 typedef std::map<std::string,std::vector<ClausePtr> > StringToClausesMap;
 
 // ITERATORS
