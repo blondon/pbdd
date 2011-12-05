@@ -10,7 +10,7 @@
 #include <pbddbuilder.h>
 #include "parser.h"
 
-typedef std::map<int,DNF*> IntToClausesMap;
+typedef std::map<int,DNF> IntToClausesMap;
 typedef IntToClausesMap::const_iterator IntToClausesMapIter;
 typedef ClauseToIntMap::const_reverse_iterator ClauseRevIter;
 

@@ -52,11 +52,11 @@ VariableOrderer::Coloring VariableOrderer::color(const Parser& parser)
 		if (coloring.clauseColoring.count(*cItr) == 0)
 		{
 			/* Initializes a new clause list */
-			clauseList = new DNF();
+			coloring.invClauseColoring[nextColor] = DNF();
 		
 			/* Assigns the clause the next color */
 			coloring.clauseColoring.insert(pair<ClausePtr,int>(*cItr, nextColor));
-			clauseList->push_back(*cItr);
+			coloring.invClauseColoring[nextColor].push_back(*cItr);
 			/* Collects the clause's variables */
 			pos = (*cItr)->posVars;
 			neg = (*cItr)->negVars;
@@ -95,7 +95,7 @@ VariableOrderer::Coloring VariableOrderer::color(const Parser& parser)
 						{
 							/* Assigns the clause the next color */
 							coloring.clauseColoring.insert(pair<ClausePtr,int>(*connectedItr, nextColor));
-							clauseList->push_back(*connectedItr);
+							coloring.invClauseColoring[nextColor].push_back(*connectedItr);
 							/* Collects the clause's variables */
 							pos = (*connectedItr)->posVars;
 							neg = (*connectedItr)->negVars;
@@ -120,8 +120,8 @@ VariableOrderer::Coloring VariableOrderer::color(const Parser& parser)
 			 * Sorts clauseList in ASCENDING order according to total reference counts
 			 * and adds it to invClauseColoring
 			 */
-			sort(clauseList->begin(), clauseList->end(), clauseComp);
-			coloring.invClauseColoring.insert(pair<int,DNF*>(nextColor++,clauseList));
+			sort(coloring.invClauseColoring[nextColor].begin(), coloring.invClauseColoring[nextColor].end(), clauseComp);
+			nextColor++;
 		}
 		
 		return coloring;
@@ -133,31 +133,36 @@ void VariableOrderer::order(const Parser& parser, VariableOrderer::Coloring colo
 	int nextPosition = 0;
 	
 	/* Gets data structures from parser */
-	const DNF dnf = parser.getDNF();
+	const DNF origDNF = parser.getDNF();
 	const StringToIntMap varRefCounts = parser.getVariableRefCounts();
 	const ClauseToIntMap clauseRefCounts = parser.getClauseRefCounts();
 	
 	/* Initializes comparator */
 	VariableOrderer::MapComparator<string> varComp(varRefCounts);
+	VariableOrderer::MapComparator<ClausePtr> clauseComp(clauseRefCounts);
 	
 	/* Data structures for traversing clauses */
+	DNF dnf = DNF(origDNF);
 	set<ClausePtr> clausesVisited;
 	StringVector vars;
-	DNF* clauseList;
+	DNF clauseList;
+
+	/* Sorts the clauses in ASCENDING order of total reference counts */
+	sort(dnf.begin(), dnf.end(), clauseComp);
 	
 	/* Iterates over the clauses in DESCENDING order of total reference counts */
-	for (ClauseRevIter cItr = clauseRefCounts.rbegin(); cItr != clauseRefCounts.rend(); cItr++)
+	for (DNFRevIter cItr = dnf.rbegin(); cItr != dnf.rend(); cItr++)
 	{
 		/* If a clause hasn't been visited, orders its variables and those of all clauses of the same color */
-		if (clausesVisited.count(cItr->first) == 0)
+		if (clausesVisited.count(*cItr) == 0)
 		{
 			/* Marks the clause as visited */
-			clausesVisited.insert(cItr->first);
+			clausesVisited.insert(*cItr);
 			
 			/* Collects the clause's variables and sorts them in ASCENDING order of reference counts */
 			vars.clear();
-			vars.insert(vars.end(), cItr->first->posVars.begin(), cItr->first->posVars.end());
-			vars.insert(vars.end(), cItr->first->negVars.begin(), cItr->first->negVars.end());
+			vars.insert(vars.end(), (*cItr)->posVars.begin(), (*cItr)->posVars.end());
+			vars.insert(vars.end(), (*cItr)->negVars.begin(), (*cItr)->negVars.end());
 			sort(vars.begin(), vars.end(), varComp);
 			
 			/* For each variable, if it isn't in the ordering, adds it */
@@ -174,19 +179,19 @@ void VariableOrderer::order(const Parser& parser, VariableOrderer::Coloring colo
 			 * invClauseColoring should already be sorted in ASCENDING order according
 			 * to total reference counts.
 			 */
-			clauseList = coloring.invClauseColoring[coloring.clauseColoring[cItr->first]];
-			for (DNFRevIter colorItr = clauseList->rbegin(); colorItr != clauseList->rend(); colorItr++)
+			clauseList = coloring.invClauseColoring[coloring.clauseColoring[*cItr]];
+			for (DNFRevIter colorItr = clauseList.rbegin(); colorItr != clauseList.rend(); colorItr++)
 			{
 				/* If a clause hasn't been visited, orders its variables */
-				if (clausesVisited.count(cItr->first) == 0)
+				if (clausesVisited.count(*colorItr) == 0)
 				{
 					/* Marks the clause as visited */
-					clausesVisited.insert(cItr->first);
+					clausesVisited.insert(*colorItr);
 			
 					/* Collects the clause's variables and sorts them in ASCENDING order of reference counts */
 					vars.clear();
-					vars.insert(vars.end(), cItr->first->posVars.begin(), cItr->first->posVars.end());
-					vars.insert(vars.end(), cItr->first->negVars.begin(), cItr->first->negVars.end());
+					vars.insert(vars.end(), (*colorItr)->posVars.begin(), (*colorItr)->posVars.end());
+					vars.insert(vars.end(), (*colorItr)->negVars.begin(), (*colorItr)->negVars.end());
 					sort(vars.begin(), vars.end(), varComp);
 			
 					/* For each variable, if it isn't in the ordering, adds it */
@@ -205,10 +210,7 @@ void VariableOrderer::order(const Parser& parser, VariableOrderer::Coloring colo
 
 VariableOrderer::Coloring::~Coloring()
 {
-	for (IntToClausesMapIter itr = invClauseColoring.begin(); itr != invClauseColoring.end(); itr++)
-	{
-		delete itr->second;
-	}
+	/* Intentionally empty */
 }
 
 template <class T>
@@ -220,7 +222,7 @@ VariableOrderer::MapComparator<T>::MapComparator(const std::map<T,int>& compMap)
 template <class T>
 VariableOrderer::MapComparator<T>::~MapComparator()
 {
-	/* Intentionally blank */
+	/* Intentionally empty */
 }
 
 template <class T>
