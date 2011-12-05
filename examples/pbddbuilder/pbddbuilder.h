@@ -36,6 +36,8 @@ typedef std::map<std::string,std::vector<ClausePtr> > StringToClausesMap;
 // ITERATORS
 typedef StringSet::const_iterator StringSetIter;
 typedef StringVector::const_iterator StringVectorIter;
+typedef StringVector::const_reverse_iterator StringVectorRevIter;
 typedef DNF::const_iterator DNFIter;
+typedef DNF::const_reverse_iterator DNFRevIter;
 
 #endif
