@@ -25,50 +25,54 @@ void Parser::parse(const string& formula)
 	BoolExprParser parser;
 	expr_ = parser.parse(formula);
 	expr_ = BoolExprString::getDisjunctiveNormalForm(expr_);
-	expr_->getDNFTermRoots(inserter(dnf_, dnf_.end()));
+	vector<BoolExprString*> dnf;
+	expr_->getDNFTermRoots(inserter(dnf, dnf.end()));
 	// traverse tree to count variable references and map variables to clauses
-	for (DNFIter it = dnf_.begin(); it != dnf_.end(); it++)
+	for (vector<BoolExprString*>::const_iterator it = dnf.begin(); it != dnf.end(); it++)
 	{
-		Clause *term = *it;
+		BoolExprString *term = *it;
+		ClausePtr clause(new Clause());
+		clause->expr = term->print();
 		StringSet pos, neg;
 		term->getTreeVariables(pos, neg);
 		for (StringSetIter it = pos.begin(); it != pos.end(); it++)
 		{
 			string key = *it;
+			clause->posVars.push_back(key);
 			if (varcnt_.count(key) == 0) {
 				varcnt_[key] = 0;
-				var2clauses_[key] = vector<Clause*>();
+				var2clauses_[key] = vector<ClausePtr>();
 			}
 			varcnt_[key] = varcnt_[key] + 1;
-			var2clauses_[key].push_back(term);
+			var2clauses_[key].push_back(clause);
 		}
 		for (StringSetIter it = neg.begin(); it != neg.end(); it++)
 		{
 			string key = *it;
+			clause->negVars.push_back(key);
 			if (varcnt_.count(key) == 0) {
 				varcnt_[key] = 0;
-				var2clauses_[key] = vector<Clause*>();
+				var2clauses_[key] = vector<ClausePtr>();
 			}
 			varcnt_[key] = varcnt_[key] + 1;
-			var2clauses_[key].push_back(term);
+			var2clauses_[key].push_back(clause);
 		}
+		dnf_.push_back(clause);
 	}
 	// traverse tree again to count references within sums
 	for (DNFIter it = dnf_.begin(); it != dnf_.end(); it++)
 	{
-		Clause *term = *it;
-		clausecnt_[term] = 0;
-		StringSet pos, neg;
-		term->getTreeVariables(pos, neg);
-		for (StringSetIter it = pos.begin(); it != pos.end(); it++)
+		ClausePtr clause = *it;
+		clausecnt_[clause->expr] = 0;
+		for (StringVectorIter it = clause->posVars.begin(); it != clause->posVars.end(); it++)
 		{
 			string key = *it;
-			clausecnt_[term] += varcnt_[key];
+			clausecnt_[clause->expr] += varcnt_[key];
 		}
-		for (StringSetIter it = neg.begin(); it != neg.end(); it++)
+		for (StringVectorIter it = clause->negVars.begin(); it != clause->negVars.end(); it++)
 		{
 			string key = *it;
-			clausecnt_[term] += varcnt_[key];
+			clausecnt_[clause->expr] += varcnt_[key];
 		}
 	}
 }
@@ -78,12 +82,16 @@ void Parser::print() const
 	cout << "Formula    : " << expr_ << endl;
 	for (DNFIter it = dnf_.begin(); it != dnf_.end(); it++)
 	{
-		Clause *term = *it;
-		StringSet pos, neg;
-		term->getTreeVariables(pos, neg);
-		cout << "Term       : " << term << endl;
-		cout << "  Positives: " << pos << endl;
-		cout << "  Negatives: " << neg << endl;
+		ClausePtr clause = *it;
+		cout << "Term       : " << clause->expr << endl;
+		cout << "  Positives: {";
+		for (StringVectorIter it = clause->posVars.begin(); it != clause->posVars.end(); it++)
+			cout << " " << *it;
+		cout << " }" << endl;
+		cout << "  Negatives: {";
+		for (StringVectorIter it = clause->negVars.begin(); it != clause->negVars.end(); it++)
+			cout << " " << *it;
+		cout << " }" << endl;
 	}
 }
 

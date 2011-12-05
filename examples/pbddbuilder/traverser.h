@@ -5,7 +5,6 @@
 
 #ifndef TRAVERSER_H
 #define TRAVERSER_H
-#endif
 
 #include <pbddbuilder.h>
 
@@ -18,9 +17,15 @@ public:
 	~Traverser();
 	
 	bdd buildBDD(const DNF& dnf, const StringToIntMap& varOrder);
+	
+	bdd pbuildBDD(const DNF& dnf, const StringToIntMap& varOrder);
 
 private:
 	
-	bdd buildTermBDD(const Clause *term, const StringToIntMap& varOrder);
+	bdd buildTermBDD(const ClausePtr term, const StringToIntMap& varOrder);
+
+	bdd pbuildTermBDD(const ClausePtr term, const StringToIntMap& varOrder);
 
 };
+
+#endif
