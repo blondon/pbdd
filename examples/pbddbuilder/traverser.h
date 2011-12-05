@@ -16,6 +16,12 @@ public:
 	
 	~Traverser();
 	
+	int getInitNodes() const { return initNodes_; }
+	void setInitNodes(int initNodes) { initNodes_ = initNodes; }
+	
+	int getInitCache() const { return initCache_; }
+	void setInitCache(int initCache) { initCache_ = initCache; }
+	
 	bdd buildBDD(const DNF& dnf, const StringToIntMap& varOrder);
 	
 	bdd pbuildBDD(const DNF& dnf, const StringToIntMap& varOrder);
@@ -25,6 +31,8 @@ private:
 	bdd buildTermBDD(const ClausePtr term, const StringToIntMap& varOrder);
 
 	bdd pbuildTermBDD(const ClausePtr term, const StringToIntMap& varOrder);
+	
+	int initNodes_, initCache_;
 
 };
 

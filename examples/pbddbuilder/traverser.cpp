@@ -7,7 +7,12 @@
 
 using namespace std;
 
+static const int DEF_INIT_NODES = 10000;
+static const int DEF_INIT_CACHE = 10000;
+
 Traverser::Traverser()
+	: initNodes_(DEF_INIT_NODES)
+	, initCache_(DEF_INIT_CACHE)
 {
 }
 
@@ -19,7 +24,7 @@ bdd Traverser::buildBDD(const DNF& dnf, const StringToIntMap& varOrder)
 {
 	// init BuDDy
 	if (bdd_isrunning() == 0) {
-		bdd_init(10000,10000);
+		bdd_init(initNodes_, initCache_);
 		bdd_setvarnum(varOrder.size());
 	}
 	else {

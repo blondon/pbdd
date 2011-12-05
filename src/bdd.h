@@ -453,12 +453,12 @@ class bdd
    bdd operator<<=(const bdd &r);
    int operator==(const bdd &r) const;
    int operator!=(const bdd &r) const;
-   
-private:
-   BDD root;
 
    bdd(BDD r) { bdd_addref(root=r); }
    bdd operator=(BDD r);
+   
+private:
+   BDD root;
 
    friend int      bdd_init(int, int);
    friend int      bdd_setvarnum(int);
