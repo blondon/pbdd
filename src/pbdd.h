@@ -85,6 +85,7 @@ extern pBddCache papplycache[MAX_BDD_OP];
 extern BddNode * ONE;
 extern BddNode * ZERO;
 extern UniqueTable bddNodes;
+extern bool _isRunning;
 
 
 
@@ -120,6 +121,7 @@ extern BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_apply(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_makenode(unsigned int level, BddNode* low, BddNode* high);
 extern void     pbdd_print(BddNode* root);
+extern bool     pbdd_isrunning();
 
 
 #endif

@@ -12,6 +12,7 @@ using namespace std;
 BddNode * ONE;
 BddNode * ZERO;
 UniqueTable bddNodes;
+bool _isRunning = false;
 
 /* internal prototypes */
 int pbdd_init(int initnodesize, int cachesize)
@@ -32,8 +33,13 @@ int pbdd_init(int initnodesize, int cachesize)
    ONE->key = 0;
    ONE->low = NULL;
    ONE->high = NULL;
+   _isRunning = true;
  
    return r;
+}
+
+bool pbdd_isrunning(){
+  return _isRunning;
 }
 
 void pbdd_done()
