@@ -51,7 +51,7 @@ typedef struct
 {
   BddNode* res;
   unsigned char invalid;
-  uintptr_t a, b;
+  int a, b;
   int c;
   volatile unsigned char lock;
 } pBddCacheData;
