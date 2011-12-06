@@ -71,9 +71,9 @@ int main(int argc, const char* argv[])
 	bdd_done();
 	
 	// parallel
-	bdd res2 = traverser.pbuildBDD(dnf, varOrder);
-	bdd_printtable(res2);
-	bdd_done();
+	pBDD res2 = traverser.pbuildBDD(dnf, varOrder);
+	pbdd_print(res2.node());
+	pbdd_done();
 	
 	cout << endl;
 	return 0;

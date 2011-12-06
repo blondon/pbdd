@@ -1,4 +1,4 @@
-#include <pbdd.h>
+#include "pbdd.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>

@@ -1,25 +1,28 @@
 #! /bin/bash
 GPP47=/fs/buzz/cs714-fa11-022/localInstalls/bin/g++
 
-mkdir src/o
-mkdir build
-mkdir build/lib
-mkdir build/inc
+PBDD_ROOT=~/pbdd
+INC_DIR=$PBDD_ROOT/inc
+LIB_DIR=$PBDD_ROOT/lib
+BLD_DIR=$PBDD_ROOT/build
+SRC_DIR=$PBDD_ROOT/src
+TMP_DIR=$PBDD_ROOT/src/o
 
-# BUILD STATIC LIBRARY
-# $GPP47 -I./inc -L./lib -c src/pbddop.cpp -o src/o/pbddop.o
-# $GPP47 -I./inc -L./lib -c src/pbddcache.cpp -o src/o/pbddcache.o
-# ar rcs build/lib/libpbdd.a src/o/pbddop.o src/o/pbddcache.o
-# 
-# rm -rf src/o/*
+mkdir $TMP_DIR
+mkdir $BLD_DIR
+mkdir $BLD_DIR/lib
+mkdir $BLD_DIR/inc
+
+echo $SRC_DIR
 
 # BUILD SHARED LIBARY
-$GPP47 -I./inc -L./lib -c -fPIC src/pbddop.cpp -o src/o/pbddop.o
-$GPP47 -I./inc -L./lib -c -fPIC src/pbddcache.cpp -o src/o/pbddcache.o
-$GPP47 -shared -Wl,-soname,build/lib/libpbdd.so -o build/lib/libpbdd.so src/o/pbddcache.o src/o/pbddop.o
+$GPP47 -I$INC_DIR -L$LIB_DIR -c -fPIC $SRC_DIR/pbddop.cpp -o $TMP_DIR/pbddop.o
+$GPP47 -I$INC_DIR -L$LIB_DIR -c -fPIC $SRC_DIR/pbddcache.cpp -o $TMP_DIR/pbddcache.o
+$GPP47 -shared -Wl,-soname,$BLD_DIR/libpbdd.so \
+	-o $BLD_DIR/lib/libpbdd.so $TMP_DIR/pbddcache.o $TMP_DIR/pbddop.o
 
-rm -rf src/o
+rm -rf $TMP_DIR
 
 # COPY HEADER
-cp src/pbdd.h build/inc/
+cp $SRC_DIR/pbdd.h $BLD_DIR/inc/
 
