@@ -18,7 +18,7 @@ echo $SRC_DIR
 # BUILD SHARED LIBARY
 $GPP47 -I$INC_DIR -L$LIB_DIR -c -fPIC $SRC_DIR/pbddop.cpp -o $TMP_DIR/pbddop.o
 $GPP47 -I$INC_DIR -L$LIB_DIR -c -fPIC $SRC_DIR/pbddcache.cpp -o $TMP_DIR/pbddcache.o
-$GPP47 -shared -Wl,-soname,$BLD_DIR/libpbdd.so \
+$GPP47 -shared -Wl,-soname,$BLD_DIR/lib/libpbdd.so \
 	-o $BLD_DIR/lib/libpbdd.so $TMP_DIR/pbddcache.o $TMP_DIR/pbddop.o
 
 rm -rf $TMP_DIR
