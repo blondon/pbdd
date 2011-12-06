@@ -1,0 +1,12 @@
+# .pc file for the pkg-config script.
+
+prefix=/fs/buzz/cs714-fa11-016/boolstuff/install
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/boolstuff-0.1
+
+Name: BoolStuff
+Description: Disjunctive Normal Form boolean expression library
+Version: 0.1.13
+Libs: -L${libdir} -lboolstuff-0.1
+Cflags: -I${includedir}
