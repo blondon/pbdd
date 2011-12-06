@@ -1,4 +1,4 @@
-#include "pbdd.h"
+#include <pbdd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -12,6 +12,7 @@ using namespace std;
 BddNode * ONE;
 BddNode * ZERO;
 UniqueTable bddNodes;
+bool _isRunning = false;
 
 /* internal prototypes */
 int pbdd_init(int initnodesize, int cachesize)
@@ -32,8 +33,13 @@ int pbdd_init(int initnodesize, int cachesize)
    ONE->key = 0;
    ONE->low = NULL;
    ONE->high = NULL;
+   _isRunning = true;
  
    return r;
+}
+
+bool pbdd_isrunning(){
+  return _isRunning;
 }
 
 void pbdd_done()
@@ -46,7 +52,7 @@ BddNode* pbdd_makenode(unsigned int level, BddNode* low, BddNode* high){
     //create node key
     string key;
     stringstream out;
-    out << level << low->level << high->level;
+    out << level << (size_t)low << (size_t)high;
     key = out.str();
     //lookupInsert key in UniqueTable
     UniqueTable::accessor a;
@@ -156,17 +162,16 @@ BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop)
 	pBddCacheData *entry;
 	hash_t hash;
 	res = pbdd_check_terminal_case(l,r,applyop);
-	if (res != NULL) {
+	if (res != NULL) 
 	   return res;
-    }
 	
 	hash = APPLYHASH(l->key,r->key);
 	cur_cache = pbdd_get_applycache(applyop);
 	entry = pBddCache_lookup(cur_cache, hash);
 	res = pBddCache_read(entry,l->key ,r->key);
-	if (res != NULL) {
+	if (res != NULL) 
 	  return res;
-	}	
+       
 	if (LEVELp(l) == LEVELp(r))
 	{
 		level = LEVELp(l);

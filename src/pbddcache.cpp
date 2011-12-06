@@ -13,7 +13,7 @@ hash_t APPLYHASH( int l,  int r)
 		hash = ((hash_t)r << 32 | l);
 	else
 		hash = ((hash_t)l << 32 | r);
-
+    
 	return hash;
 }
 
@@ -51,7 +51,7 @@ int pBddCache_resize(pBddCache *cache, int newsize)
 	for (n = 0; n < newsize; n++)
 	{
 		cache->table[n].res = NULL;
-                cache->table[n].invalid = TRUE;
+        cache->table[n].invalid = TRUE;
 		cache->table[n].lock = FALSE;
 	}
 	cache->tablesize = newsize;
@@ -96,7 +96,7 @@ BddNode* pBddCache_read(pBddCacheData * entry,  int l,  int r) {
     //spin while you didn't acquire
   }
   //make sure you have the lock
-  assert(entry->lock == TRUE);
+  //assert(entry->lock == TRUE);
 
   //read the cache
   if (entry->a == l && entry->b == r)

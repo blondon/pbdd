@@ -51,7 +51,7 @@ typedef struct
 {
   BddNode* res;
   unsigned char invalid;
-  uintptr_t a, b;
+  int a, b;
   int c;
   volatile unsigned char lock;
 } pBddCacheData;
@@ -85,6 +85,7 @@ extern pBddCache papplycache[MAX_BDD_OP];
 extern BddNode * ONE;
 extern BddNode * ZERO;
 extern UniqueTable bddNodes;
+extern bool _isRunning;
 
 
 
@@ -117,6 +118,7 @@ extern BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_apply(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_makenode(unsigned int level, BddNode* low, BddNode* high);
 extern void     pbdd_print(BddNode* root);
+extern bool     pbdd_isrunning();
 
 /// pBDD class ///
 class pBDD
