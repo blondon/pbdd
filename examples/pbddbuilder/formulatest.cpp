@@ -89,9 +89,9 @@ int main()
 	cout << "Done second test." << endl;
 	
 	/// BUILD BDD (PARALLEL)
-	bdd res3 = traverser.pbuildBDD(dnf, varOrder);
-	bdd_printtable(res3);
-	bdd_done();
+	pBDD res3 = traverser.pbuildBDD(dnf, varOrder);
+	pbdd_print(res3.node());
+	pbdd_done();
 	cout << "Done third test." << endl;
 	
 	return 0;

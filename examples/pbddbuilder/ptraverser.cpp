@@ -12,18 +12,14 @@
 using namespace std;
 using namespace cilk;
 
-bdd Traverser::pbuildBDD(const DNF& dnf, const StringToIntMap& varOrder)
+pBDD Traverser::pbuildBDD(const DNF& dnf, const StringToIntMap& varOrder)
 {
 	// init BuDDy
-	if (bdd_isrunning() == 0) {
-		bdd_init(initNodes_, initCache_);
-		bdd_setvarnum(varOrder.size());
-	}
-	else {
-		bdd_extvarnum(varOrder.size());
+	if (pbdd_isrunning() == 0) {
+		pbdd_init(initNodes_, initCache_);
 	}
 	// use cilk reducer to execute conjunctions in parallel
-	reducer_opor<bdd> res;
+	reducer_opor<pBDD> res;
 	cilk_for (DNFIter it = dnf.begin(); it != dnf.end(); it++)
 	{
 		const ClausePtr clause = *it;
@@ -32,44 +28,44 @@ bdd Traverser::pbuildBDD(const DNF& dnf, const StringToIntMap& varOrder)
 	return res.get_value();
 }
 
-bdd Traverser::pbuildTermBDD(const ClausePtr clause, const StringToIntMap& varOrder)
+pBDD Traverser::pbuildTermBDD(const ClausePtr clause, const StringToIntMap& varOrder)
 {
 	bool noPosTerms = clause->posVars.size() == 0;
 	bool noNegTerms = clause->negVars.size() == 0;
- 	reducer_opand<bdd> res;
+ 	reducer_opand<pBDD> res;
 	if (!noPosTerms)
 	{
 		string a = clause->posVars[0];
 		int aidx = varOrder.find(a)->second;
-		bdd avar = bdd_ithvar(aidx);
+		pBDD avar = pbdd_ithvar(aidx);
 		res.set_value(avar);
 		cilk_for (int i = 1; i < clause->posVars.size(); i++)
 		{
 			string b = clause->posVars[i];
 			int bidx = varOrder.find(b)->second;
-			bdd bvar = bdd_ithvar(bidx);
+			pBDD bvar = pbdd_ithvar(bidx);
 			res &= bvar;
 		}
 	}
-	if (!noNegTerms)
-	{
-		int offset = 0;
-		if (noPosTerms)
-		{
-			string a = clause->negVars[0];
-			int aidx = varOrder.find(a)->second;
-			bdd avar = bdd_nithvar(aidx);
-			res.set_value(avar);
-			offset = 1;
-		}
-		cilk_for (int i = offset; i < clause->negVars.size(); i++)
-		{
-			string b = clause->negVars[i];
-			int bidx = varOrder.find(b)->second;
-			bdd bvar = bdd_nithvar(bidx);
-			res &= bvar;
-		}
-	}
+// 	if (!noNegTerms)
+// 	{
+// 		int offset = 0;
+// 		if (noPosTerms)
+// 		{
+// 			string a = clause->negVars[0];
+// 			int aidx = varOrder.find(a)->second;
+// 			pBDD avar = pbdd_nithvar(aidx);
+// 			res.set_value(avar);
+// 			offset = 1;
+// 		}
+// 		cilk_for (int i = offset; i < clause->negVars.size(); i++)
+// 		{
+// 			string b = clause->negVars[i];
+// 			int bidx = varOrder.find(b)->second;
+// 			pBDD bvar = bdd_nithvar(bidx);
+// 			res &= bvar;
+// 		}
+// 	}
 	return res.get_value();
 }
 

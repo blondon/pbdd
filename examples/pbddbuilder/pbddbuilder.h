@@ -12,7 +12,6 @@
 #include <vector>
 #include <map>
 #include <boolstuff/BoolExprParser.h>
-#include <bdd.h>
 
 // CLAUSE
 class Clause
@@ -24,7 +23,6 @@ public:
 typedef std::shared_ptr<Clause> ClausePtr;
 
 // DATA TYPEDEFS
-typedef bdd Variable;
 typedef boolstuff::BoolExpr<std::string> BoolExprString;
 typedef std::vector<ClausePtr> DNF;
 typedef std::set<std::string> StringSet;
