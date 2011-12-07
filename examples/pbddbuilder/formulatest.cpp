@@ -13,7 +13,7 @@ typedef std::map<int,std::vector<std::string> > IntToStringsMap;
 int main()
 {
 	/// PARSE FORMULA
-	string formula = "(A & B) | (C & (D | E)) | (!E & !A)";
+	string formula = "(A & B) | (C & (D | E)) | (E & A)";
 	Parser parser(formula);
 	parser.print();
 	DNF dnf = parser.getDNF();
@@ -76,15 +76,15 @@ int main()
 	c = varOrder["C"];
 	d = varOrder["D"];
 	e = varOrder["E"];
-	bdd res1 = (VAR(a) & VAR(b)) | (!VAR(e) & !VAR(a)) | (VAR(c) & VAR(d)) | (VAR(c) & VAR(e));
-	bdd_printtable(res1);
+	bdd res1 = (VAR(a) & VAR(b)) | (VAR(e) & VAR(a)) | (VAR(c) & VAR(d)) | (VAR(c) & VAR(e));
+	bdd_print(res1.id());
 	bdd_done();
 	cout << "Done first test." << endl;
 	
 	/// BUILD BDD (SERIAL)
 	Traverser traverser;
 	bdd res2 = traverser.buildBDD(dnf, varOrder);
-	bdd_printtable(res2);
+	bdd_print(res2.id());
 	bdd_done();
 	cout << "Done second test." << endl;
 	

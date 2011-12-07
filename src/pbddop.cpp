@@ -165,10 +165,10 @@ BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop)
 	if (res != NULL) 
 	   return res;
 	
-	hash = APPLYHASH(l->key,r->key);
+	hash = APPLYHASH(l->level,r->level);
 	cur_cache = pbdd_get_applycache(applyop);
 	entry = pBddCache_lookup(cur_cache, hash);
-	res = pBddCache_read(entry,l->key ,r->key);
+	res = pBddCache_read(entry,l->key,r->key);
 	if (res != NULL) 
 	  return res;
        
@@ -206,18 +206,16 @@ BddNode* pbdd_apply(BddNode* l, BddNode* r, int applyop)
   return res;
 }
 
-void pbdd_print(BddNode* root) {
-   if (root->level == 0) {
-    cout<<"Node ID: 0"<<endl;
-   }
-   else if (root->level == 1) {
-    cout<<"Node ID: 1"<<endl;
-   }
-   else {
-    cout<<"Node ID: "<<root->key<<", Level = "<<root->level<<", low Child Level = "<<root->low->level<<", high Child Level = "<<root->high->level<<endl;
-    pbdd_print(root->low);
-    pbdd_print(root->high);
-  } 
+
+void pbdd_print(BddNode* root)
+{
+	if (root->level != 0 && root->level != 1) {
+		printf("%5d :", root->level);
+		printf(" %3d", root->low->level);
+		printf(" %3d\n", root->high->level);
+		pbdd_print(root->low);
+		pbdd_print(root->high);
+	} 
 }
 
 

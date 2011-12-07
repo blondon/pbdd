@@ -190,13 +190,11 @@ inline BddNode* pBDD::node()
 }
 inline pBDD pBDD::operator=(const pBDD& rhs)
 {
-	this->node_ = rhs.node_;
-	return *this;
+	return (this->node_ = rhs.node_);
 }
 inline pBDD pBDD::operator=(const BddNode* node)
 {
-	this->node_ = node_;
-	return *this;
+	return (this->node_ = node_);
 }
 inline pBDD pBDD::operator&(const pBDD& rhs) const
 {
@@ -204,7 +202,7 @@ inline pBDD pBDD::operator&(const pBDD& rhs) const
 }
 inline pBDD pBDD::operator&=(const pBDD& rhs)
 {
-	return (*this=pbdd_apply(this->node_, rhs.node_, bddop_and));
+	return (this->node_=pbdd_apply(this->node_, rhs.node_, bddop_and));
 }
 inline pBDD pBDD::operator|(const pBDD& rhs) const
 {
@@ -212,7 +210,7 @@ inline pBDD pBDD::operator|(const pBDD& rhs) const
 }
 inline pBDD pBDD::operator|=(const pBDD& rhs)
 {
-	return (*this=pbdd_apply(this->node_, rhs.node_, bddop_or));
+	return (this->node_=pbdd_apply(this->node_, rhs.node_, bddop_or));
 }
 inline int pBDD::operator==(const pBDD& rhs) const
 {
