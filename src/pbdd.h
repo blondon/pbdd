@@ -115,6 +115,7 @@ extern void     pbdd_done();
 extern BddNode* pbdd_ithvar(int);
 extern BddNode* pbdd_check_terminal_case(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop);
+extern BddNode* pbdd_apply_ser(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_apply(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_makenode(unsigned int level, BddNode* low, BddNode* high);
 extern void     pbdd_print(BddNode* root);

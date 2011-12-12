@@ -97,7 +97,6 @@ BddNode* pbdd_ithvar(int level)
     return newNode;
 }
 
-
 BddNode* pbdd_check_terminal_case(BddNode* lbdd, BddNode* rbdd, int applyop)
 {
   unsigned int l = LEVELp(lbdd);
@@ -152,7 +151,6 @@ BddNode* pbdd_check_terminal_case(BddNode* lbdd, BddNode* rbdd, int applyop)
   return NULL;
 }
 
-
 BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop)
 {
 	BddNode* res;
@@ -175,7 +173,7 @@ BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop)
 	if (LEVELp(l) == LEVELp(r))
 	{
 		level = LEVELp(l);
-		low = cilk_spawn  pbdd_apply_rec(LOWp(l), LOWp(r), applyop);
+		low = cilk_spawn pbdd_apply_rec(LOWp(l), LOWp(r), applyop);
 		high = pbdd_apply_rec(HIGHp(l), HIGHp(r), applyop);
 		cilk_sync;
 	}
@@ -199,20 +197,72 @@ BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop)
 	return res;
 }
 
+BddNode* pbdd_apply_ser(BddNode* l, BddNode* r, int applyop)
+{
+	BddNode* res;
+	BddNode* low;
+        BddNode* high;
+	unsigned int level;
+	pBddCacheData *entry;
+	hash_t hash;
+	res = pbdd_check_terminal_case(l,r,applyop);
+	if (res != NULL) 
+	   return res;
+	
+	hash = APPLYHASH(l->level,r->level);
+	cur_cache = pbdd_get_applycache(applyop);
+// 	entry = pBddCache_lookup(cur_cache, hash);
+// 	res = pBddCache_read(entry,l->key,r->key);
+// 	if (res != NULL) 
+// 	  return res;
+       
+	if (LEVELp(l) == LEVELp(r))
+	{
+		level = LEVELp(l);
+		low = pbdd_apply_ser(LOWp(l), LOWp(r), applyop);
+		high = pbdd_apply_ser(HIGHp(l), HIGHp(r), applyop);
+	}
+	else if (LEVELp(l) < LEVELp(r))
+	{
+		level = LEVELp(l);
+		low = pbdd_apply_ser(LOWp(l), r, applyop);
+		high = pbdd_apply_ser(HIGHp(l), r, applyop);
+	}
+	else
+	{
+		level = LEVELp(r);
+		low = pbdd_apply_ser(l, LOWp(r), applyop);
+		high = pbdd_apply_ser(l, HIGHp(r), applyop);
+	}
+
+    res = pbdd_makenode(level, low, high);	
+	//pBddCache_insert(entry, l->key, r->key, res, applyop);
+	return res;
+}
 
 BddNode* pbdd_apply(BddNode* l, BddNode* r, int applyop)
 {
-  BddNode* res = pbdd_apply_rec(l, r,applyop);
-  return res;
+	BddNode* res = pbdd_apply_ser(l, r, applyop);
+	return res;
 }
 
+void pbdd_printnode(BddNode* node)
+{
+	if (node->level == 0)
+		printf("  -");
+	else if (node->level == 1)
+		printf("  +");
+	else
+		printf("%3d", node->level-2);
+}
 
 void pbdd_print(BddNode* root)
 {
 	if (root->level != 0 && root->level != 1) {
-		printf("%5d :", root->level);
-		printf(" %3d", root->low->level);
-		printf(" %3d\n", root->high->level);
+		printf("%5d :", root->level-2);
+		pbdd_printnode(root->low);
+		pbdd_printnode(root->high);
+		printf("\n");
 		pbdd_print(root->low);
 		pbdd_print(root->high);
 	} 

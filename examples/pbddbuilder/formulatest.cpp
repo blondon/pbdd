@@ -13,7 +13,7 @@ typedef std::map<int,std::vector<std::string> > IntToStringsMap;
 int main()
 {
 	/// PARSE FORMULA
-	string formula = "(A & B) | (C & (D | E)) | (E & A)";
+	string formula = "(A & B) | (B & D)";// | (C & (D | E)) | (E & A)";
 	Parser parser(formula);
 	parser.print();
 	DNF dnf = parser.getDNF();
@@ -60,7 +60,6 @@ int main()
 	*/
 	/// SMART ORDERING
 	VariableOrderer orderer(parser);
-	cout << "I'm here!" << endl;
 	StringToIntMap varOrder = orderer.getOrdering();
 	for (StringToIntMap::const_iterator it = varOrder.begin(); it != varOrder.end(); it++)
 	{
@@ -76,8 +75,9 @@ int main()
 	c = varOrder["C"];
 	d = varOrder["D"];
 	e = varOrder["E"];
-	bdd res1 = (VAR(a) & VAR(b)) | (VAR(e) & VAR(a)) | (VAR(c) & VAR(d)) | (VAR(c) & VAR(e));
+	bdd res1 = (VAR(a) & VAR(b)) | (VAR(b) & VAR(d));// | (VAR(e) & VAR(a)) | (VAR(c) & VAR(d)) | (VAR(c) & VAR(e));
 	bdd_print(res1.id());
+	// bdd_printtable(res1.id());
 	bdd_done();
 	cout << "Done first test." << endl;
 	
@@ -85,6 +85,7 @@ int main()
 	Traverser traverser;
 	bdd res2 = traverser.buildBDD(dnf, varOrder);
 	bdd_print(res2.id());
+	// bdd_print(res2.id());
 	bdd_done();
 	cout << "Done second test." << endl;
 	
