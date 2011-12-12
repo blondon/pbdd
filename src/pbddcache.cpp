@@ -96,7 +96,7 @@ BddNode* pBddCache_read(pBddCacheData * entry,  int l,  int r) {
     //spin while you didn't acquire
   }
   //make sure you have the lock
-  //assert(entry->lock == TRUE);
+  assert(entry->lock == TRUE);
 
   //read the cache
   if (entry->a == l && entry->b == r)
