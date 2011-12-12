@@ -7,6 +7,8 @@
 #define TRAVERSER_H
 
 #include <pbddbuilder.h>
+#include <bdd.h>
+#include <pbdd.h>
 
 class Traverser
 {
@@ -24,13 +26,13 @@ public:
 	
 	bdd buildBDD(const DNF& dnf, const StringToIntMap& varOrder);
 	
-	bdd pbuildBDD(const DNF& dnf, const StringToIntMap& varOrder);
+	pBDD pbuildBDD(const DNF& dnf, const StringToIntMap& varOrder);
 
 private:
 	
 	bdd buildTermBDD(const ClausePtr term, const StringToIntMap& varOrder);
 
-	bdd pbuildTermBDD(const ClausePtr term, const StringToIntMap& varOrder);
+	pBDD pbuildTermBDD(const ClausePtr term, const StringToIntMap& varOrder);
 	
 	int initNodes_, initCache_;
 

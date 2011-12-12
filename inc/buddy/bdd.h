@@ -313,6 +313,7 @@ extern double   bdd_pathcount(BDD);
    
 /* In file "bddio.c" */
 
+extern void		bdd_print(BDD);
 extern void     bdd_printall(void);
 extern void     bdd_fprintall(FILE *);
 extern void     bdd_fprinttable(FILE *, BDD);

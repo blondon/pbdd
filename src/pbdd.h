@@ -1,7 +1,7 @@
 #ifndef _PBDD_H
 #define _PBDD_H
 
-#include <tbb/tbb/concurrent_hash_map.h>
+#include <concurrent_hash_map.h>
 #include <string>
 
 
@@ -89,7 +89,6 @@ extern bool _isRunning;
 
 
 
-//pbddCache.cpp functions
 #define pBddCache_lookup(cache, hash) (&(cache)->table[hash % (cache)->tablesize])
 
 
@@ -111,8 +110,6 @@ static inline pBddCache *pbdd_get_applycache(int op)
 extern int pbdd_operator_init(int cacheSize);
 extern void pbdd_operator_done(void);
 
-//pbddop.cpp functions
-
 extern int      pbdd_init(int initnodesize, int cachesize);
 extern void     pbdd_done();
 extern BddNode* pbdd_ithvar(int);
@@ -123,5 +120,105 @@ extern BddNode* pbdd_makenode(unsigned int level, BddNode* low, BddNode* high);
 extern void     pbdd_print(BddNode* root);
 extern bool     pbdd_isrunning();
 
+/// pBDD class ///
+class pBDD
+{
+public:
+
+	// constructors
+	pBDD();
+	pBDD(const pBDD& rhs);
+	pBDD(BddNode* node);
+	
+	// special constructor for cilk reducers
+	pBDD(int value);
+	
+	// destructor
+	~pBDD();
+	
+	// node
+	const BddNode* node() const;
+	BddNode* node();
+
+	// operators
+	pBDD operator= (const pBDD& rhs);
+	pBDD operator& (const pBDD& rhs) const;
+	pBDD operator&=(const pBDD& rhs);
+	pBDD operator| (const pBDD& rhs) const;
+	pBDD operator|=(const pBDD& rhs);
+	int  operator==(const pBDD& rhs) const;
+	int  operator!=(const pBDD& rhs) const;
+	
+private:
+
+	pBDD operator= (const BddNode* node);
+
+	BddNode* node_;
+};
+
+/// inline pBDD implementation ///
+
+inline pBDD::pBDD()
+	: node_(ZERO)
+{
+}
+inline pBDD::pBDD(const pBDD& rhs)
+	: node_(rhs.node_)
+{
+}
+inline pBDD::pBDD(BddNode* node)
+	: node_(node)
+{
+}
+inline pBDD::pBDD(int value)
+{
+	if (value == (~0))
+		node_ = ONE;
+	else
+		node_ = ZERO;
+}
+inline pBDD::~pBDD()
+{
+}
+inline const BddNode* pBDD::node() const
+{
+	return node_;
+}
+inline BddNode* pBDD::node()
+{
+	return node_;
+}
+inline pBDD pBDD::operator=(const pBDD& rhs)
+{
+	return (this->node_ = rhs.node_);
+}
+inline pBDD pBDD::operator=(const BddNode* node)
+{
+	return (this->node_ = node_);
+}
+inline pBDD pBDD::operator&(const pBDD& rhs) const
+{
+	return pbdd_apply(this->node_, rhs.node_, bddop_and);
+}
+inline pBDD pBDD::operator&=(const pBDD& rhs)
+{
+	return (this->node_=pbdd_apply(this->node_, rhs.node_, bddop_and));
+}
+inline pBDD pBDD::operator|(const pBDD& rhs) const
+{
+	return pbdd_apply(this->node_, rhs.node_, bddop_or);
+}
+inline pBDD pBDD::operator|=(const pBDD& rhs)
+{
+	return (this->node_=pbdd_apply(this->node_, rhs.node_, bddop_or));
+}
+inline int pBDD::operator==(const pBDD& rhs) const
+{
+	return this->node_ == rhs.node_;
+}
+inline int pBDD::operator!=(const pBDD& rhs) const
+{
+	return this->node_ != rhs.node_;
+}
 
 #endif

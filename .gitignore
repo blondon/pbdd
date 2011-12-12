@@ -27,7 +27,3 @@ stamp-h1
 .project
 .settings
 
-# Local build dirs #
-####################
-include
-lib
