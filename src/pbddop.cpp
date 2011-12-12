@@ -1,4 +1,4 @@
-#include <pbdd.h>
+#include "pbdd.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -171,10 +171,12 @@ BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop)
 	res = pBddCache_read(entry,l->key ,r->key);
 	if (res != NULL) 
 	  return res;
-       
+    
+    
 	if (LEVELp(l) == LEVELp(r))
 	{
 		level = LEVELp(l);
+		
 		low = cilk_spawn  pbdd_apply_rec(LOWp(l), LOWp(r), applyop);
 		high = pbdd_apply_rec(HIGHp(l), HIGHp(r), applyop);
 		cilk_sync;
@@ -182,7 +184,7 @@ BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop)
 	else if (LEVELp(l) < LEVELp(r))
 	{
 		level = LEVELp(l);
-		low = cilk_spawn pbdd_apply_rec(LOWp(l), r, applyop);
+		low = cilk_spawn  pbdd_apply_rec(LOWp(l), r, applyop);
 		high = pbdd_apply_rec(HIGHp(l), r, applyop);
 		cilk_sync;
 	}
