@@ -124,7 +124,7 @@ void pBddCache_insert(pBddCacheData * entry, int l, int r, BddNode* res, int app
   if (entry->res != res) {
 		entry->a = l;
 		entry->b = r;
-                entry->invalid = FALSE;
+        entry->invalid = FALSE;
 		entry->c = applyop;
 		entry->res = res;
   }

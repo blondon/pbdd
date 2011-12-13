@@ -31,7 +31,7 @@ typedef struct BddNode BddNode;
 
 struct BddNode {
    unsigned int level;
-   int key;
+   //std::string key;
    BddNode *low;
    BddNode *high;
 };
@@ -51,7 +51,7 @@ typedef struct
 {
   BddNode* res;
   unsigned char invalid;
-  int a, b;
+  size_t a, b;
   int c;
   volatile unsigned char lock;
 } pBddCacheData;
@@ -64,7 +64,7 @@ typedef struct
 
 
 #ifndef APPLYHASH
-extern long long APPLYHASH( int l,  int r);
+extern long long APPLYHASH(int l,  int r);
 #endif
 
 #define PAIR(a,b)      ((unsigned int)((((unsigned int)a)+((unsigned int)b))*(((unsigned int)a)+((unsigned int)b)+((unsigned int)1))/((unsigned int)2)+((unsigned int)a)))
@@ -114,11 +114,12 @@ extern int      pbdd_init(int initnodesize, int cachesize);
 extern void     pbdd_done();
 extern BddNode* pbdd_ithvar(int);
 extern BddNode* pbdd_check_terminal_case(BddNode* l, BddNode* r, int applyop);
-extern BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop);
-extern BddNode* pbdd_apply_ser(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_apply(BddNode* l, BddNode* r, int applyop);
+extern BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop);
+extern BddNode* pbdd_apply_serial(BddNode* l, BddNode* r, int applyop);
+extern BddNode* pbdd_apply_serial_rec(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_makenode(unsigned int level, BddNode* low, BddNode* high);
-extern void     pbdd_print(BddNode* root);
+extern void     pbdd_print(const BddNode* root);
 extern bool     pbdd_isrunning();
 
 /// pBDD class ///
@@ -150,11 +151,35 @@ public:
 	int  operator==(const pBDD& rhs) const;
 	int  operator!=(const pBDD& rhs) const;
 	
-private:
+protected:
 
-	pBDD operator= (const BddNode* node);
+	pBDD operator=(BddNode* node);
 
 	BddNode* node_;
+};
+
+/// pBDDS (serial) class ///
+class pBDDS : public pBDD
+{
+public:
+
+	// constructors
+	pBDDS();
+	pBDDS(const pBDDS& rhs);
+	pBDDS(BddNode* node);
+	
+	// special constructor for cilk reducers
+	pBDDS(int value);
+	
+	// destructor
+	~pBDDS();
+	
+	// operators
+	pBDDS operator= (const pBDDS& rhs);
+	pBDDS operator& (const pBDDS& rhs) const;
+	pBDDS operator&=(const pBDDS& rhs);
+	pBDDS operator| (const pBDDS& rhs) const;
+	pBDDS operator|=(const pBDDS& rhs);
 };
 
 /// inline pBDD implementation ///
@@ -193,9 +218,9 @@ inline pBDD pBDD::operator=(const pBDD& rhs)
 {
 	return (this->node_ = rhs.node_);
 }
-inline pBDD pBDD::operator=(const BddNode* node)
+inline pBDD pBDD::operator=(BddNode* node)
 {
-	return (this->node_ = node_);
+	return (this->node_ = node);
 }
 inline pBDD pBDD::operator&(const pBDD& rhs) const
 {
@@ -220,6 +245,51 @@ inline int pBDD::operator==(const pBDD& rhs) const
 inline int pBDD::operator!=(const pBDD& rhs) const
 {
 	return this->node_ != rhs.node_;
+}
+
+/// inline pBDDS implementation ///
+
+inline pBDDS::pBDDS()
+	: pBDD(ZERO)
+{
+}
+inline pBDDS::pBDDS(const pBDDS& rhs)
+	: pBDD(rhs.node_)
+{
+}
+inline pBDDS::pBDDS(BddNode* node)
+	: pBDD(node)
+{
+}
+inline pBDDS::pBDDS(int value)
+{
+	if (value == (~0))
+		node_ = ONE;
+	else
+		node_ = ZERO;
+}
+inline pBDDS::~pBDDS()
+{
+}
+inline pBDDS pBDDS::operator=(const pBDDS& rhs)
+{
+	return (this->node_ = rhs.node_);
+}
+inline pBDDS pBDDS::operator&(const pBDDS& rhs) const
+{
+	return pbdd_apply_serial(this->node_, rhs.node_, bddop_and);
+}
+inline pBDDS pBDDS::operator&=(const pBDDS& rhs)
+{
+	return (this->node_=pbdd_apply_serial(this->node_, rhs.node_, bddop_and));
+}
+inline pBDDS pBDDS::operator|(const pBDDS& rhs) const
+{
+	return pbdd_apply_serial(this->node_, rhs.node_, bddop_or);
+}
+inline pBDDS pBDDS::operator|=(const pBDDS& rhs)
+{
+	return (this->node_=pbdd_apply_serial(this->node_, rhs.node_, bddop_or));
 }
 
 #endif

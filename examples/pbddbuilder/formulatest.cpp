@@ -13,7 +13,7 @@ typedef std::map<int,std::vector<std::string> > IntToStringsMap;
 int main()
 {
 	/// PARSE FORMULA
-	string formula = "(A & B) | (B & D)";// | (C & (D | E)) | (E & A)";
+	string formula = "(A & B) | (C & (D | E)) | (E & A)";
 	Parser parser(formula);
 	parser.print();
 	DNF dnf = parser.getDNF();
@@ -37,27 +37,6 @@ int main()
 		cout << "Clause " << it->first->expr << " cnt " << it->second << endl;
 	}
 	
-	/// NAIVE ORDERING
-	/*
-	IntToStringsMap varcntinv;
-	for (StringToIntMap::const_iterator it = varcnt.begin(); it != varcnt.end(); it++)
-	{
-		int cnt = it->second;
-		if (varcntinv.count(cnt) == 0)
-			varcntinv[cnt] = vector<string>();
-		varcntinv[cnt].push_back(it->first);
-	}
-	StringToIntMap varOrder;
-	int idx = 0;
-	for (IntToStringsMap::reverse_iterator it = varcntinv.rbegin(); it != varcntinv.rend(); it++)
-	{
-		vector<string> vars = it->second;
-		for (vector<string>::const_iterator it2 = vars.begin(); it2 != vars.end(); it2++)
-		{
-			varOrder[*it2] = idx++;
-		}
-	}
-	*/
 	/// SMART ORDERING
 	VariableOrderer orderer(parser);
 	StringToIntMap varOrder = orderer.getOrdering();
@@ -75,9 +54,8 @@ int main()
 	c = varOrder["C"];
 	d = varOrder["D"];
 	e = varOrder["E"];
-	bdd res1 = (VAR(a) & VAR(b)) | (VAR(b) & VAR(d));// | (VAR(e) & VAR(a)) | (VAR(c) & VAR(d)) | (VAR(c) & VAR(e));
+	bdd res1 = (VAR(a) & VAR(b)) | (VAR(e) & VAR(a)) | (VAR(c) & VAR(d)) | (VAR(c) & VAR(e));
 	bdd_print(res1.id());
-	// bdd_printtable(res1.id());
 	bdd_done();
 	cout << "Done first test." << endl;
 	
@@ -85,15 +63,20 @@ int main()
 	Traverser traverser;
 	bdd res2 = traverser.buildBDD(dnf, varOrder);
 	bdd_print(res2.id());
-	// bdd_print(res2.id());
 	bdd_done();
 	cout << "Done second test." << endl;
 	
-	/// BUILD BDD (PARALLEL)
-	pBDD res3 = traverser.pbuildBDD(dnf, varOrder);
+	/// BUILD PBDD (REDUCERS)
+	pBDD res3 = traverser.buildPBDD(dnf, varOrder);
 	pbdd_print(res3.node());
 	pbdd_done();
 	cout << "Done third test." << endl;
+	
+	/// BUILD PBDD (SERIAL)
+// 	pBDD res4 = traverser.buildPBDDSerial(dnf, varOrder);
+// 	pbdd_print(res4.node());
+// 	pbdd_done();
+// 	cout << "Done fourth test." << endl;
 	
 	return 0;
 }

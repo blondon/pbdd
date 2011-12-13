@@ -26,14 +26,18 @@ public:
 	
 	bdd buildBDD(const DNF& dnf, const StringToIntMap& varOrder);
 	
-	pBDD pbuildBDD(const DNF& dnf, const StringToIntMap& varOrder);
+	pBDD buildPBDD(const DNF& dnf, const StringToIntMap& varOrder);
+
+	pBDD buildPBDDSerial(const DNF& dnf, const StringToIntMap& varOrder);
 
 private:
 	
 	bdd buildTermBDD(const ClausePtr term, const StringToIntMap& varOrder);
 
-	pBDD pbuildTermBDD(const ClausePtr term, const StringToIntMap& varOrder);
+	pBDDS buildTermPBDD(const ClausePtr term, const StringToIntMap& varOrder);
 	
+	pBDD buildTermPBDDSerial(const ClausePtr term, const StringToIntMap& varOrder);
+
 	int initNodes_, initCache_;
 
 };
