@@ -36,6 +36,18 @@ int main(int argc, const char* argv[])
 		if (v > 0 && v < 4)
 			version = v;
 	}
+	int initNodes = 10000;
+	if (argc >= 4) {
+		const char* opt = argv[3];
+		int v = atoi(opt);
+		initNodes = v;
+	}
+	int initCache = 10000;
+	if (argc >= 5) {
+		const char* opt = argv[4];
+		int v = atoi(opt);
+		initCache = v;
+	}
 	cout << "\n------------" << endl;
 	cout << "DNF TEST" << endl;
 	cout << "------------" << endl;
@@ -80,8 +92,8 @@ int main(int argc, const char* argv[])
 
 	// build BDD
 	Traverser traverser;
-	traverser.setInitNodes(10000);
-	traverser.setInitCache(10000);
+	traverser.setInitNodes(initNodes);
+	traverser.setInitCache(initCache);
 	
 	// build BDD
 	cout << "Starting traversal ... ";
