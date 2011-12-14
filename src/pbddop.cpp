@@ -12,29 +12,61 @@ using namespace std;
 BddNode * ONE;
 BddNode * ZERO;
 UniqueTable bddNodes;
+BddNode* unique_hashmap_bddnodes;
+int bddnodesize;
+int bddfreenum;
+int bddproduced;
 bool _isRunning = false;
+
+int unique_hashmap_init(int initnodesize){
+	if ((unique_hashmap_bddnodes = (BddNode*)malloc(sizeof(BddNode)*initnodesize)) == NULL)
+		return -1;
+	bddnodesize = initnodesize;
+	bddfreenum = initnodesize;
+    bddproduced = 0;
+	for(int n=0; n<bddnodesize ; n++)
+	{
+		unique_hashmap_bddnodes[n].level = 0;
+		unique_hashmap_bddnodes[n].low = NULL;
+		unique_hashmap_bddnodes[n].high = NULL;
+		unique_hashmap_bddnodes[n].key = INVALID_BDD;
+	}
+	return 0;
+}
+void unique_hashmap_done() {
+	free(unique_hashmap_bddnodes);
+}
 
 /* internal prototypes */
 int pbdd_init(int initnodesize, int cachesize)
 {
-   int r = pbdd_operator_init(cachesize);
+   //Initialize unique_hashmap_bddNodes
+   int r = unique_hashmap_init(initnodesize);
+   if (r < 0) {
+   	unique_hashmap_done();
+   	exit(-1);
+   }
+   r = pbdd_operator_init(cachesize);
+   
+   //Init our own local table
 	
-   if (r < 0)
+   if (r < 0) {
   	pbdd_operator_done();
+  	exit(-1);
+   }
    //Make zero node
    ZERO = (BddNode*)malloc(sizeof(BddNode));
    ZERO->level = 0;
-   //ZERO->key = "ZERO";
    ZERO->low = NULL;
    ZERO->high = NULL;
+   ZERO->key = VALID_BDD;
    //Make one nodes
    ONE = (BddNode*)malloc(sizeof(BddNode));
    ONE->level = 1;
-   //ONE->key = "ONE";
    ONE->low = NULL;
    ONE->high = NULL;
+   ONE->key = VALID_BDD;
    _isRunning = true;
- 
    return r;
 }
 
@@ -45,7 +77,72 @@ bool pbdd_isrunning(){
 void pbdd_done()
 {
    pbdd_operator_done();
+   unique_hashmap_done();
 }
+
+BddNode* unique_hashmap_insert(unsigned int level, BddNode* low, BddNode* high){
+   BddNode* ent = unique_hashmap_getentry(level,low,high);
+   if (ent == NULL)
+  	exit(-1);
+  if (ent->key == INVALID_BDD) {
+    if (__sync_val_compare_and_swap(&ent->key,INVALID_BDD,VALID_BDD) != INVALID_BDD)
+      unique_hashmap_insert(level,low,high);
+    //we have acquired this entry
+    ent->level = level;
+    ent->low = low;
+    ent->high = high;
+  }
+  else {
+    assert((ent->level == level) && (ent->low == low) && (ent->high == high));
+  }
+  return ent;
+   
+}
+BddNode* unique_hashmap_lookup(unsigned int level, BddNode* low, BddNode* high) {
+  BddNode* ent = unique_hashmap_getentry(level,low,high);
+  if (ent != NULL && ent->key != INVALID_BDD)
+  	return ent;
+  else
+    return INVALID_BDD;
+}
+
+BddNode* unique_hashmap_getentry(unsigned int level, BddNode* low, BddNode* high) {
+   unsigned int hash;
+   BddNode* ent;
+   int probes;
+   
+   hash = NODEHASH(level, (size_t)low, (size_t)high);
+   ent = &unique_hashmap_bddnodes[hash];
+   probes = 0;
+   while ((probes < bddnodesize - 1) && (ent->level != level) && (ent->low != low) && (ent->high != high) && (ent->key != INVALID_BDD)){
+       probes++;
+       hash = (hash + 1) % bddnodesize;
+       ent = &unique_hashmap_bddnodes[hash];
+   }
+   
+   if (probes >= bddnodesize - 1)
+     return NULL;
+   else
+     return ent;  
+}
+
+BddNode* unique_hashmap_makenode(unsigned int level, BddNode* low, BddNode* high) {
+	BddNode* res;
+	//look_up node
+	res = unique_hashmap_lookup(level,low,high);
+	if (res != NULL) {
+	  return res;
+	}
+	//otherwise create
+	res = unique_hashmap_insert(level,low,high);
+        if (__sync_sub_and_fetch(&bddfreenum,1) < 0)
+        {
+          exit(-1);
+        }
+        __sync_add_and_fetch(&bddproduced,1);
+	return res;
+}
+
 
 BddNode* pbdd_makenode(unsigned int level, BddNode* low, BddNode* high){
     BddNode *newNode;
@@ -75,25 +172,30 @@ BddNode* pbdd_ithvar(int level)
 {
     BddNode *newNode;
     //create node key
-    int internalLevel = level + 2; 
-    string key;
-    stringstream out;
-    out << internalLevel;
-    key = out.str();
-    //insert node in UniqueTable
-    UniqueTable::accessor a;
-    if (bddNodes.insert(a,key)) {
-      //create new node 
-      if ((newNode=(BddNode*)malloc(sizeof(BddNode))) == NULL)
-        exit(-1);
-      newNode->level = internalLevel;
-      newNode->low = ZERO;
-      //newNode->key = key;
-      newNode->high = ONE;
-      a->second = newNode;
-    }
-    else
-      newNode = a->second;
+    int internalLevel = level + 2;
+    #ifdef TBB 
+      string key;
+      stringstream out;
+      out << internalLevel;
+      key = out.str();
+      //insert node in UniqueTable
+      UniqueTable::accessor a;
+      if (bddNodes.insert(a,key)) {
+        //create new node 
+        if ((newNode=(BddNode*)malloc(sizeof(BddNode))) == NULL)
+          exit(-1);
+        newNode->level = internalLevel;
+        newNode->low = ZERO;
+        newNode->high = ONE;
+        a->second = newNode;
+      }
+      else
+        newNode = a->second;
+    #else
+      newNode = unique_hashmap_makenode(internalLevel,ZERO,ONE);
+      if (newNode == NULL)
+    	  exit(-1);
+    #endif
     return newNode;
 }
 
@@ -204,9 +306,12 @@ BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop)
 		high = pbdd_apply_rec(l, HIGHp(r), applyop);
 		cilk_sync;
 	}
-
-    res = pbdd_makenode(level, low, high);	
-	pBddCache_insert(entry, (size_t)l, (size_t)r, res, applyop);
+    #ifdef TBB
+      res = pbdd_makenode(level, low, high);	
+    #else
+      res =  unique_hashmap_makenode(level, low, high);
+    #endif	
+       pBddCache_insert(entry, (size_t)l, (size_t)r, res, applyop);
 	return res;
 }
 
@@ -247,9 +352,12 @@ BddNode* pbdd_apply_serial_rec(BddNode* l, BddNode* r, int applyop)
 		low = pbdd_apply_serial_rec(l, LOWp(r), applyop);
 		high = pbdd_apply_serial_rec(l, HIGHp(r), applyop);
 	}
-
-    res = pbdd_makenode(level, low, high);	
- 	pBddCache_insert(entry, (size_t)l, (size_t)r, res, applyop);
+    #ifdef TBB
+     res = pbdd_makenode(level, low, high);
+    #else
+     res =  unique_hashmap_makenode(level, low, high);
+    #endif
+    	pBddCache_insert(entry, (size_t)l, (size_t)r, res, applyop);
 	return res;
 }
 

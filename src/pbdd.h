@@ -23,6 +23,12 @@
 #define MAX_BDD_OP (bddop_simplify + 1)
 #define TRUE  '1'
 #define FALSE '0'
+#define VALID_BDD 1
+#define INVALID_BDD 0
+
+#ifndef TBB
+#define TBB
+#endif
 
 
 typedef long long hash_t;
@@ -31,13 +37,15 @@ typedef struct BddNode BddNode;
 
 struct BddNode {
    unsigned int level;
-   //std::string key;
    BddNode *low;
    BddNode *high;
+   int key;
 };
 
-//Define Unique table
+//Define Unique table tbb implementation
 typedef tbb::concurrent_hash_map<std::string,BddNode*> UniqueTable;
+
+
 
 
 
@@ -85,6 +93,10 @@ extern pBddCache papplycache[MAX_BDD_OP];
 extern BddNode * ONE;
 extern BddNode * ZERO;
 extern UniqueTable bddNodes;
+extern BddNode* unique_hashmap_bddnodes;
+extern int bddnodesize;
+extern int bddfreenum;
+extern int bddproduced;
 extern bool _isRunning;
 
 
@@ -118,6 +130,15 @@ extern BddNode* pbdd_apply(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_apply_rec(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_apply_serial(BddNode* l, BddNode* r, int applyop);
 extern BddNode* pbdd_apply_serial_rec(BddNode* l, BddNode* r, int applyop);
+
+//Unique hashmap init
+extern int      unique_hashmap_init(int initnodesize);
+extern void     unique_hashmap_done();
+extern BddNode* unique_hashmap_insert(unsigned int level, BddNode* low, BddNode* high);
+extern BddNode* unique_hashmap_lookup(unsigned int level, BddNode* low, BddNode* high);
+extern BddNode* unique_hashmap_getentry(unsigned int level, BddNode* low, BddNode* high);
+extern BddNode* unique_hashmap_makenode(unsigned int level, BddNode* low, BddNode* high);
+
 extern BddNode* pbdd_makenode(unsigned int level, BddNode* low, BddNode* high);
 extern void     pbdd_print(const BddNode* root);
 extern bool     pbdd_isrunning();
