@@ -11,6 +11,8 @@
 #include "variableorderer.h"
 #include "traverser.h"
 
+#define TBB
+
 using namespace std;
 
 #define VAR(X) bdd_ithvar(X)

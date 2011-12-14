@@ -1,7 +1,7 @@
 #! /bin/bash
 GPP47=/fs/buzz/cs714-fa11-022/localInstalls/bin/g++
 
-PBDD_ROOT=~/pbdd
+PBDD_ROOT=~/pbddFinal/pbdd
 INC_DIR=$PBDD_ROOT/inc
 LIB_DIR=$PBDD_ROOT/lib
 BLD_DIR=$PBDD_ROOT/build
