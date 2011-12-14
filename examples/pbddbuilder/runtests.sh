@@ -1,13 +1,30 @@
 #!/bin/bash
 
-time CILK_NWORKERS=1 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 1 100000
-time CILK_NWORKERS=1 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 2 100000
-time CILK_NWORKERS=2 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 2 100000
-time CILK_NWORKERS=4 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 2 100000
-time CILK_NWORKERS=8 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 2 100000
-time CILK_NWORKERS=16 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 2 100000
-time CILK_NWORKERS=1 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 3 100000
-time CILK_NWORKERS=2 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 3 100000
-time CILK_NWORKERS=4 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 3 100000
-time CILK_NWORKERS=8 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 3 100000
-time CILK_NWORKERS=16 ../../build/bin/dnftest ../../build/bin/testCases/factor_0001/query1_0001.txt 3 100000
+# increase size of the stack
+# NOTE: might have to be set from command line manually
+ulimit -s 32000
+
+DNFTEST="../../build/bin/dnftest"
+
+for i in 0001 0005 001 #005 01
+do
+	for j in 2 6 8 #16
+	do
+		echo ""
+		echo "FACTOR $i QUERY $j"
+		QPATH="../../build/bin/testCases/factor_${i}/query${j}_${i}.txt"
+		CILK_NWORKERS=1 $DNFTEST $QPATH 1 100000
+# 		for k in 1 2 4 8 16
+# 		do
+# 			echo ""
+# 			echo "NUM THREADS $k"
+# 			CILK_NWORKERS=${k} $DNFTEST $QPATH 2 100000
+# 		done
+		for k in 1 2 4 8 16
+		do
+			echo ""
+			echo "NUM THREADS $k"
+			CILK_NWORKERS=${k} $DNFTEST $QPATH 3 100000
+		done
+	done
+done
