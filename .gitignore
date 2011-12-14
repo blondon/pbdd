@@ -3,16 +3,13 @@
 *.lo
 *.o
 *.slo
-*.a
 *.dylib
-*.so
 *.dll
 
 # Other generated files #
 #########################
 *.Plo
 *.Po
-*.la
 *.lai
 config.h
 config.log
