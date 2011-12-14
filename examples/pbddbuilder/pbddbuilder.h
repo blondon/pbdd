@@ -11,7 +11,7 @@
 #include <set>
 #include <vector>
 #include <map>
-#include <boolstuff/BoolExprParser.h>
+#include <BoolExprParser.h>
 
 // CLAUSE
 class Clause

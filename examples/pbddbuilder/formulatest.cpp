@@ -67,13 +67,13 @@ int main()
 	cout << "Done second test." << endl;
 	
 	/// BUILD PBDD (REDUCERS)
-	pBDD res3 = traverser.buildPBDD(dnf, varOrder);
+	pBDD res3 = traverser.buildPBDDReducer(dnf, varOrder);
 	pbdd_print(res3.node());
 	pbdd_done();
 	cout << "Done third test." << endl;
 	
 	/// BUILD PBDD (SERIAL)
-// 	pBDD res4 = traverser.buildPBDDSerial(dnf, varOrder);
+// 	pBDD res4 = traverser.buildPBDDCilk(dnf, varOrder);
 // 	pbdd_print(res4.node());
 // 	pbdd_done();
 // 	cout << "Done fourth test." << endl;

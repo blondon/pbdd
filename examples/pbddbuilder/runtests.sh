@@ -13,7 +13,7 @@ do
 		echo ""
 		echo "FACTOR $i QUERY $j"
 		QPATH="../../build/bin/testCases/factor_${i}/query${j}_${i}.txt"
-		CILK_NWORKERS=1 $DNFTEST $QPATH 1 100000
+		$DNFTEST $QPATH 1 100000
 # 		for k in 1 2 4 8 16
 # 		do
 # 			echo ""

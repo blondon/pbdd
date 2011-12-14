@@ -12,11 +12,11 @@
 using namespace std;
 using namespace cilk;
 
-/// PARALLEL METHODS ///
+/// REDUCER METHODS ///
 
-pBDD Traverser::buildPBDD(const DNF& dnf, const StringToIntMap& varOrder)
+pBDD Traverser::buildPBDDReducer(const DNF& dnf, const StringToIntMap& varOrder)
 {
-	// init BuDDy
+	// init
 	if (pbdd_isrunning() == 0) {
 		pbdd_init(initNodes_, initCache_);
 	}
@@ -25,12 +25,12 @@ pBDD Traverser::buildPBDD(const DNF& dnf, const StringToIntMap& varOrder)
 	cilk_for (DNFIter it = dnf.begin(); it != dnf.end(); it++)
 	{
 		const ClausePtr clause = *it;
-		res = res | buildTermPBDD(clause, varOrder);
+		res = res | buildTermPBDDReducer(clause, varOrder);
 	}
 	return res.get_value();
 }
 
-pBDDS Traverser::buildTermPBDD(const ClausePtr clause, const StringToIntMap& varOrder)
+pBDDS Traverser::buildTermPBDDReducer(const ClausePtr clause, const StringToIntMap& varOrder)
 {
 	bool noPosTerms = clause->posVars.size() == 0;
 	bool noNegTerms = clause->negVars.size() == 0;
@@ -71,9 +71,9 @@ pBDDS Traverser::buildTermPBDD(const ClausePtr clause, const StringToIntMap& var
 	return res.get_value();
 }
 
-/// SERIAL METHODS ///
+/// CILK METHODS ///
 
-pBDD Traverser::buildPBDDSerial(const DNF& dnf, const StringToIntMap& varOrder)
+pBDD Traverser::buildPBDDCilk(const DNF& dnf, const StringToIntMap& varOrder)
 {
 	// init BuDDy
 	if (pbdd_isrunning() == 0) {
@@ -84,12 +84,12 @@ pBDD Traverser::buildPBDDSerial(const DNF& dnf, const StringToIntMap& varOrder)
 	for (DNFIter it = dnf.begin(); it != dnf.end(); it++)
 	{
 		const ClausePtr clause = *it;
-		res = res | buildTermPBDDSerial(clause, varOrder);
+		res = res | buildTermPBDDCilk(clause, varOrder);
 	}
 	return res;
 }
 
-pBDD Traverser::buildTermPBDDSerial(const ClausePtr clause, const StringToIntMap& varOrder)
+pBDD Traverser::buildTermPBDDCilk(const ClausePtr clause, const StringToIntMap& varOrder)
 {
 	bool noPosTerms = clause->posVars.size() == 0;
 	bool noNegTerms = clause->negVars.size() == 0;
@@ -105,6 +105,44 @@ pBDD Traverser::buildTermPBDDSerial(const ClausePtr clause, const StringToIntMap
 			string b = clause->posVars[i];
 			int bidx = varOrder.find(b)->second;
 			pBDD bvar = pbdd_ithvar(bidx);
+			res = res & bvar;
+		}
+	}
+	return res;
+}
+
+/// SERIAL METHODS ///
+
+pBDD Traverser::buildPBDDSerial(const DNF& dnf, const StringToIntMap& varOrder)
+{
+	if (pbdd_isrunning() == 0) {
+		pbdd_init(initNodes_, initCache_);
+	}
+	pBDDS res;
+	for (DNFIter it = dnf.begin(); it != dnf.end(); it++)
+	{
+		const ClausePtr clause = *it;
+		res = res | buildTermPBDDSerial(clause, varOrder);
+	}
+	return res;
+}
+
+pBDDS Traverser::buildTermPBDDSerial(const ClausePtr clause, const StringToIntMap& varOrder)
+{
+	bool noPosTerms = clause->posVars.size() == 0;
+	bool noNegTerms = clause->negVars.size() == 0;
+ 	pBDDS res;
+	if (!noPosTerms)
+	{
+		string a = clause->posVars[0];
+		int aidx = varOrder.find(a)->second;
+		pBDDS avar = pbdd_ithvar(aidx);
+		res = avar;
+		for (int i = 1; i < clause->posVars.size(); i++)
+		{
+			string b = clause->posVars[i];
+			int bidx = varOrder.find(b)->second;
+			pBDDS bvar = pbdd_ithvar(bidx);
 			res = res & bvar;
 		}
 	}

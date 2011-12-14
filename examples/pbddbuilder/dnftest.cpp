@@ -27,7 +27,7 @@ int main(int argc, const char* argv[])
 	// read input params
 	if (argc < 2) {
 		cerr << "\nUSAGE: ./dnftest <in_file> <version> \n";
-		cerr << "  Version: [1] serial [2] without reducers [3] with reducers \n\n";
+		cerr << "  Version: [1] serial [2] cilk (no reducers) [3] with reducers [4] BuDDy \n\n";
 		return 1;
 	}
 	string fname = argv[1];
@@ -57,8 +57,9 @@ int main(int argc, const char* argv[])
 	cout << "Version: ";
 	switch (version) {
 		case 1: cout << "Serial"; break;
-		case 2: cout << "Without reducers"; break;
+		case 2: cout << "Cilk (no reducers)"; break;
 		case 3: cout << "With reducers"; break;
+		case 4: cout << "BuDDy"; break;
 	}
 	cout << endl;
 	
@@ -104,19 +105,24 @@ int main(int argc, const char* argv[])
 	pBDD res2;
 	switch (version) {
 		case 1:
-			res1 = traverser.buildBDD(dnf, varOrder);
-			//bdd_print(res1.id());
-			bdd_done();
+			res2 = traverser.buildPBDDSerial(dnf, varOrder);
+			//bdd_print(res2.node());
+			pbdd_done();
 			break;
 		case 2:
-			res2 = traverser.buildPBDDSerial(dnf, varOrder);
+			res2 = traverser.buildPBDDCilk(dnf, varOrder);
 			//pbdd_print(res2.node());
 			pbdd_done();
 			break;
 		case 3:
-			res2 = traverser.buildPBDD(dnf, varOrder);
+			res2 = traverser.buildPBDDReducer(dnf, varOrder);
 			//pbdd_print(res2.node());
 			pbdd_done();
+			break;
+		case 4:
+			res1 = traverser.buildBDD(dnf, varOrder);
+			//bdd_print(res1.id());
+			bdd_done();
 			break;
 	}
 	t1 = clock();
